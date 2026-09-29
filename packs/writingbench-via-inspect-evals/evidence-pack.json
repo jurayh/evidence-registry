@@ -1,0 +1,158 @@
+{
+  "schema_version": "evidence-pack-v1",
+  "pack_id": "writingbench-via-inspect-evals",
+  "created_utc": "2026-09-29 18:42 UTC",
+  "build_function": "build_writingbench",
+  "benchmark": {
+    "name": "WritingBench",
+    "definition_source": "inspect_evals/writingbench",
+    "version": "3-A"
+  },
+  "harness": {
+    "name": "evalwarden",
+    "version": "0.6.1",
+    "install": "pip install evalwarden==0.6.1",
+    "python": "3.12 (advisory; pack authored under 3.12.3)"
+  },
+  "inputs": [
+    {
+      "role": "task_definition",
+      "kind": "git",
+      "location": "https://github.com/UKGovernmentBEIS/inspect_evals",
+      "pin": {
+        "commit": "244e43cc924d1de5a78dad7db259bbd4471c97e7",
+        "paths": [
+          "writingbench.py",
+          "eval.yaml",
+          "README.md"
+        ]
+      },
+      "public": true,
+      "fetch_note": "Read by the pack author at the pinned commit; the judge defaults (model, grade pattern, judge GenerateConfig, 5 scorers, mean reducer) and the anchored level texts are encoded as constants in the builder script. Machine-verifiable link is the builder script content hash; this pin is for human audit of those constants."
+    },
+    {
+      "role": "dataset_sample",
+      "kind": "https",
+      "location": "https://raw.githubusercontent.com/UKGovernmentBEIS/inspect_evals/244e43cc924d1de5a78dad7db259bbd4471c97e7/src/inspect_evals/writingbench/benchmark_all.jsonl",
+      "pin": {
+        "content_sha256": "dadd4c4645e2934c2e31c4401013af66b39611f6e1cf0f37a4e8985a52c264f6"
+      },
+      "public": true,
+      "fetch_spec": {
+        "method": "jsonl_ranged_head",
+        "records": 12
+      },
+      "fetch_note": "First 12 complete JSONL records via ranged reads (the file is 14.7 MB; only the head is fetched). The hash covers exactly the 12 consumed record strings, as a JSON array in canonical form (keys sorted, compact separators, UTF-8). The file lives in the inspect_evals repo at the pinned commit, so the content is pinned twice: by commit and by hash. Any upstream change fails loudly."
+    },
+    {
+      "role": "builder",
+      "kind": "github_raw",
+      "location": "https://raw.githubusercontent.com/jurayh/evalwarden/468fa10/examples/report-cards/real/build_real_cards.py",
+      "pin": {
+        "content_sha256": "eb4d37cd6d31f1ffeff748cde742ee05d9198531ddf054b6f4ad035fa73a1c46"
+      },
+      "public": true,
+      "fetch_note": "The upstream translation script, fetched at the pinned evalwarden commit and verified byte-for-byte. The verifier imports it and runs build_writingbench only."
+    }
+  ],
+  "task_manifest": {
+    "files": {
+      "PROVENANCE.json": "c877ec9cac5eb673801fa52974f2f3a3dc00bd1c0602d65c06711d4278479dc1",
+      "dataset.json": "f235a51906c33a2d0740a9b71133438f09e4b1a5cb1bcfe7fb542be810c2928e",
+      "environment.json": "679f89e5a6c62f2099bc4c35c51ba4b80dbb343ad7b2cfca607791a271ca3411",
+      "grader.json": "f44bfde5b935e7fd385546f9c79565169567d6471dffd154a426e79b6eb75ba9"
+    },
+    "sha256": "3444e3c7dad51ce9bee8c71de5016f9540e8477b28e7d29362afc40af0e5fc74"
+  },
+  "translation": {
+    "excluded": [
+      {
+        "item": "Checklist criterion texts (criteria_description and per-level anchors)",
+        "reason": "Public in the dataset but grader-side: they live in TaskState sample metadata and are interpolated into the scoring prompt, which the solver never sees. The integrity question is what the agent can see."
+      },
+      {
+        "item": "Reference answers",
+        "reason": "None exist: this is an open-ended generation task graded 1-10 by the judge against the checklist. Nothing to exclude beyond the criteria above."
+      }
+    ],
+    "notes": "The judge story, honestly: WritingBench's anchored 1-10 rubric did not save it from JUDGE-001. No labeled calibration set ships in the eval definition (the README's Validation Notes cover pipeline execution, not judge-vs-human agreement), so the high-severity calibration finding fires exactly as it did for HealthBench. But the checks do discriminate on judge configuration: WritingBench samples at temperature 0.7 with 1 repeat and drew a second, medium-severity JUDGE-001 finding for sampling noise, which HealthBench's temperature-0.0 judge did not. Anchored scales are not calibration. Also note the 3-A changelog behavior carried in the definition: judge completions that miss the grade pattern are dropped from the per-sample mean rather than zeroed, so judge degradation and genuine model improvement move the headline the same way."
+  },
+  "audit_result": {
+    "result": {
+      "eval_id": "WritingBench via inspect_evals",
+      "adapter": "inspect 0.1.0",
+      "verdict": "BLOCKED",
+      "score": 85,
+      "findings": [
+        {
+          "id": "JUDGE-001",
+          "title": "Model judge has no labeled calibration set",
+          "severity": "high",
+          "confidence": "high",
+          "description": "A model judge with no labeled calibration set is an unvalidated measurement instrument: its scores have no demonstrated relationship to human judgment. Unanchored rubrics and unpinned sampling temperature make the verdicts drift further without anyone noticing.",
+          "evidence": [
+            "grader uses model judge anthropic/claude-3-5-haiku-latest with no reference labels attached.",
+            "Judge scores are unvalidated against human judgment."
+          ],
+          "locations": [
+            "judge_run.json -- reference_labels (absent)"
+          ],
+          "remediation": "Collect a labeled calibration set and report judge-vs-human agreement before trusting scores; anchor the rubric scale with explicit examples per level; pin temperature to 0 or take multiple repeats per item.",
+          "fingerprint": "465b1b9814888e38"
+        },
+        {
+          "id": "JUDGE-001",
+          "title": "Judge samples at temperature 0.7 with only 1 repeat(s)",
+          "severity": "medium",
+          "confidence": "medium",
+          "description": "A model judge with no labeled calibration set is an unvalidated measurement instrument: its scores have no demonstrated relationship to human judgment. Unanchored rubrics and unpinned sampling temperature make the verdicts drift further without anyone noticing.",
+          "evidence": [
+            "temperature=0.7, repeats=1: sampling noise can flip verdicts with no way to detect it."
+          ],
+          "locations": [
+            "judge_run.json -- judge.temperature / judge.repeats"
+          ],
+          "remediation": "Collect a labeled calibration set and report judge-vs-human agreement before trusting scores; anchor the rubric scale with explicit examples per level; pin temperature to 0 or take multiple repeats per item.",
+          "fingerprint": "42fe08290f2d2f4a"
+        }
+      ],
+      "digests": {
+        "dataset.json": "f235a51906c33a2d0740a9b71133438f09e4b1a5cb1bcfe7fb542be810c2928e",
+        "environment.json": "679f89e5a6c62f2099bc4c35c51ba4b80dbb343ad7b2cfca607791a271ca3411",
+        "grader.json": "f44bfde5b935e7fd385546f9c79565169567d6471dffd154a426e79b6eb75ba9"
+      },
+      "unsupported": [
+        "dataset.json:notes",
+        "grader.json:notes"
+      ]
+    },
+    "sha256": "bc61473c9d026fed09932d9dd92bab20dcc503bde4ced328ca9c330a6143d7f8"
+  },
+  "runs": [],
+  "runs_coverage_note": "Definition-level card: no run records exist. Without runs, COST-002..004, the attempt leg of GRAD-002, and JUDGE-003..006 cannot fire; the audit correctly stays silent about them. A definition-level card is a floor, not a ceiling.",
+  "cost_summary": null,
+  "cost_summary_absent_reason": "no_run_records",
+  "expected_card": {
+    "filename": "writingbench-via-inspect-evals.html",
+    "sha256": "c5a6980e781fa5d249b953e105b333763f0e9fe055c1e4e21a5825861c7fbea7"
+  },
+  "canonicalization": {
+    "applies_to": "the generated card HTML, before sha256",
+    "rule": "Two mechanical substitutions: (1) replace <footer>...</footer> with <footer></footer>; (2) replace the methodology-table Generated row timestamp cell with the literal TIMESTAMP. The harness version string is kept: the pack pins the exact version, so a version mismatch must fail, not be normalized away."
+  },
+  "repro": {
+    "command": "Save the pack as evidence-pack.json, then run: curl -sSL https://raw.githubusercontent.com/jurayh/evidence-registry/7615cc6ebcb1045ba5b04134258c9273a9935dc4/verify_pack.py -o /tmp/ep_verify.py && python3 /tmp/ep_verify.py evidence-pack.json --work-dir /tmp/ep_work",
+    "verifier": {
+      "location": "https://github.com/jurayh/evidence-registry/blob/main/verify_pack.py",
+      "pin": {
+        "commit": "7615cc6ebcb1045ba5b04134258c9273a9935dc4",
+        "content_sha256": "9d78e75f3f7384600e520876b1aa821d35167a9af566dbc57038bdce4df7efaa"
+      }
+    }
+  },
+  "kill_criterion": {
+    "question": "can a stranger regenerate this card from public inputs?",
+    "status": "unverified",
+    "verifier_note": "Pack authored 2026-09-29 18:42 UTC; stranger-run pending."
+  }
+}

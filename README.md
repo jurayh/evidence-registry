@@ -18,6 +18,7 @@ and real staleness bugs it caught in the evalwarden repo's own example cards.
 |------|--------|----------------|
 | [`healthbench-via-inspect-evals`](packs/healthbench-via-inspect-evals/evidence-pack.json) | 85/100 BLOCKED, 2x JUDGE-001 | PASS: stranger regenerated the card from public inputs |
 | [`swe-bench-verified-via-inspect-evals`](packs/swe-bench-verified-via-inspect-evals/evidence-pack.json) | 100/100 PASS, no findings | PASS: stranger regenerated the card from public inputs |
+| [`writingbench-via-inspect-evals`](packs/writingbench-via-inspect-evals/evidence-pack.json) | 85/100 BLOCKED, 2x JUDGE-001 | Stranger-run pending |
 
 ## Layout
 
