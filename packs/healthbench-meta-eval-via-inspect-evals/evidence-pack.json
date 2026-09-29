@@ -1,0 +1,142 @@
+{
+  "schema_version": "evidence-pack-v1",
+  "pack_id": "healthbench-meta-eval-via-inspect-evals",
+  "created_utc": "2026-09-29 19:26 UTC",
+  "build_function": "build_healthbench_meta_eval",
+  "benchmark": {
+    "name": "HealthBench meta_eval",
+    "definition_source": "inspect_evals/healthbench",
+    "version": "2025-05-07"
+  },
+  "harness": {
+    "name": "evalwarden",
+    "version": "0.6.1",
+    "install": "pip install evalwarden==0.6.1",
+    "python": "3.12 (advisory; pack authored under 3.12.3)"
+  },
+  "inputs": [
+    {
+      "role": "task_definition",
+      "kind": "git",
+      "location": "https://github.com/UKGovernmentBEIS/inspect_evals",
+      "pin": {
+        "commit": "244e43cc924d1de5a78dad7db259bbd4471c97e7",
+        "paths": [
+          "healthbench.py",
+          "dataset.py",
+          "meta_evaluation.py",
+          "scorer.py"
+        ]
+      },
+      "public": true,
+      "fetch_note": "Read by the pack author at the pinned commit; the meta_eval dataset URL (DATASET_URLS['meta_eval']), the judge defaults (meta_evaluation_scorer signature), the judge input format (_create_conversation_string), the stable-id scheme (create_stable_id), and the physician-majority rule (calculate_physician_majority) are encoded as constants in the builder script. Machine-verifiable link is the builder script content hash; this pin is for human audit of those constants."
+    },
+    {
+      "role": "dataset_sample",
+      "kind": "https",
+      "location": "https://openaipublic.blob.core.windows.net/simple-evals/healthbench/2025-05-07-06-14-12_oss_meta_eval.jsonl",
+      "pin": {
+        "content_sha256": "61e7a6d8247a71aa08b6a6cbacfe0fa5a2aff5bd04ff551940be3ac5be498b14"
+      },
+      "public": true,
+      "fetch_note": "First 12 complete JSONL records via ranged reads (2MB chunks). The hash covers exactly the 12 records consumed, as a JSON array of strings in canonical form (keys sorted, compact separators, UTF-8). Any blob drift changes this hash and fails verification loudly."
+    },
+    {
+      "role": "builder",
+      "kind": "github_raw",
+      "location": "https://raw.githubusercontent.com/jurayh/evalwarden/59c4bdd/examples/report-cards/real/build_real_cards.py",
+      "pin": {
+        "content_sha256": "9c192579cbaadea5531615eff10a372f63b5e7300e34f0f2fb8a60e4fd129814"
+      },
+      "public": true,
+      "fetch_note": "The upstream translation script, fetched at the pinned evalwarden commit and verified byte-for-byte. The verifier imports it and runs build_healthbench_meta_eval only."
+    }
+  ],
+  "task_manifest": {
+    "files": {
+      "PROVENANCE.json": "406c282e9f669f5141a4ca051477cd589dda42c32843f91088cc4031d5dedb6e",
+      "dataset.json": "1ecc496c90d9d389af2e66a7b2a929dde29eabc0f3988fc559b718100d235678",
+      "environment.json": "24f6eafa5c5ac01ab3d9134a86e0251770df1ce8fc158920f68a700c6a0cb69b",
+      "grader.json": "d6b2994acf26a57507e3c93e824e2d15d6cfb6befac0e833afa49cd8e701b6f8",
+      "judge_run.json": "167289024f671f576b332df8c46906e4c220e051deafea96b7f9568020622c8a"
+    },
+    "sha256": "0a314a46d36f1af7e158d08b669ac8cd2caab32d74efebdfac23062e219e9bbc"
+  },
+  "translation": {
+    "excluded": [
+      {
+        "item": "binary_labels (physician boolean grades, 2-5 per record)",
+        "reason": "Public in the dataset but harness-side: they are the ground truth the judge is validated against. The integrity question is what the JUDGE can see. Attached as the grader's reference_labels via judge_run.json instead."
+      },
+      {
+        "item": "anonymized_physician_ids",
+        "reason": "Not needed to describe the instrument; the per-record physician count is kept in task metadata."
+      }
+    ],
+    "notes": "The meta_eval subset has no agent solver: completions are pre-recorded responses under evaluation. Each task prompt is exactly the judge's input per _create_conversation_string (conversation turns plus the completion as the final assistant turn), with the task id replicating create_stable_id(prompt_id, completion_id, prefix='healthbench_meta'). The pack samples the first 12 records in dataset order as a definition sample illustrating the instrument, not a particular eval draw."
+  },
+  "audit_result": {
+    "result": {
+      "eval_id": "HealthBench meta_eval via inspect_evals",
+      "adapter": "inspect 0.1.0",
+      "verdict": "PASS",
+      "score": 95,
+      "findings": [
+        {
+          "id": "JUDGE-001",
+          "title": "Judge rubric has no explicit scale anchors",
+          "severity": "medium",
+          "confidence": "high",
+          "description": "A model judge with no labeled calibration set is an unvalidated measurement instrument: its scores have no demonstrated relationship to human judgment. Unanchored rubrics and unpinned sampling temperature make the verdicts drift further without anyone noticing.",
+          "evidence": [
+            "judge rubric defines criteria but no anchored scale levels.",
+            "Without anchors, score meanings drift between runs and reviewers."
+          ],
+          "locations": [
+            "judge_run.json -- judge.scale_anchors (absent)"
+          ],
+          "remediation": "Collect a labeled calibration set and report judge-vs-human agreement before trusting scores; anchor the rubric scale with explicit examples per level; pin temperature to 0 or take multiple repeats per item.",
+          "fingerprint": "789f174f61f5730e"
+        }
+      ],
+      "digests": {
+        "dataset.json": "1ecc496c90d9d389af2e66a7b2a929dde29eabc0f3988fc559b718100d235678",
+        "environment.json": "24f6eafa5c5ac01ab3d9134a86e0251770df1ce8fc158920f68a700c6a0cb69b",
+        "grader.json": "d6b2994acf26a57507e3c93e824e2d15d6cfb6befac0e833afa49cd8e701b6f8",
+        "judge_run.json": "167289024f671f576b332df8c46906e4c220e051deafea96b7f9568020622c8a"
+      },
+      "unsupported": [
+        "dataset.json:notes",
+        "grader.json:notes"
+      ]
+    },
+    "sha256": "a13147a05b2d48e33143504d21055044ae4d85c25aafb83521c5e57f42af13c1"
+  },
+  "runs": [],
+  "runs_coverage_note": "Definition-level card: no run records exist. Without runs, COST-002..004, the attempt leg of GRAD-002, and JUDGE-002..007 cannot fire; the audit correctly stays silent about them. JUDGE-001's labeled-calibration-set finding does not fire because the physician labels ship in the definition and are attached as reference_labels. A definition-level card is a floor, not a ceiling.",
+  "cost_summary": null,
+  "cost_summary_absent_reason": "no_run_records",
+  "expected_card": {
+    "filename": "healthbench-meta-eval-via-inspect-evals.html",
+    "sha256": "d261d050c4e79727ac5eb7f2f3b182241b36768341e850cb5bb9dfaf95cc268b"
+  },
+  "canonicalization": {
+    "applies_to": "the generated card HTML, before sha256",
+    "rule": "Two mechanical substitutions: (1) replace <footer>...</footer> with <footer></footer>; (2) replace the methodology-table Generated row timestamp cell with the literal TIMESTAMP. The harness version string is kept: the pack pins the exact version, so a version mismatch must fail, not be normalized away."
+  },
+  "repro": {
+    "command": "Save the pack as evidence-pack.json, then run: curl -sSL https://raw.githubusercontent.com/jurayh/evidence-registry/e048082/verify_pack.py -o /tmp/ep_verify.py && python3 /tmp/ep_verify.py evidence-pack.json --work-dir /tmp/ep_work",
+    "verifier": {
+      "location": "https://github.com/jurayh/evidence-registry/blob/main/verify_pack.py",
+      "pin": {
+        "commit": "e048082",
+        "content_sha256": "9d78e75f3f7384600e520876b1aa821d35167a9af566dbc57038bdce4df7efaa"
+      }
+    }
+  },
+  "kill_criterion": {
+    "question": "can a stranger regenerate this card from public inputs?",
+    "status": "pass",
+    "verifier_note": "2026-09-29: stranger-run from a clean directory with only the pack and verify_pack.py (pinned at e048082). 9/9 checks passed: schema version, all inputs public, task-definition pin resolves, dataset sample hash (12 records), builder hash, task manifest hash, harness 0.6.1 installed fresh, audit result hash (PASS 95/100, 1 finding), canonical card hash. Kill criterion answered: yes, a stranger can regenerate this card from public inputs."
+  }
+}

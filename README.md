@@ -35,6 +35,7 @@ artifacts after a rebrand, and regeneration surfaced both.
 | Pack | Audit result | Card | Stranger test |
 |------|--------------|------|---------------|
 | [`healthbench-via-inspect-evals`](packs/healthbench-via-inspect-evals/evidence-pack.json) | 85/100 BLOCKED: model judge with no calibration set | [card](packs/healthbench-via-inspect-evals/card.html) | PASS |
+| [`healthbench-meta-eval-via-inspect-evals`](packs/healthbench-meta-eval-via-inspect-evals/evidence-pack.json) | 95/100 PASS: judge ships its physician-labeled calibration set | [card](packs/healthbench-meta-eval-via-inspect-evals/card.html) | PASS |
 | [`swe-bench-verified-via-inspect-evals`](packs/swe-bench-verified-via-inspect-evals/evidence-pack.json) | 100/100 PASS: grading stays harness-side | [card](packs/swe-bench-verified-via-inspect-evals/card.html) | PASS |
 | [`writingbench-via-inspect-evals`](packs/writingbench-via-inspect-evals/evidence-pack.json) | 85/100 BLOCKED: an anchored rubric is not calibration | [card](packs/writingbench-via-inspect-evals/card.html) | PASS |
 | [`mmlu-via-inspect-evals`](packs/mmlu-via-inspect-evals/evidence-pack.json) | 100/100 PASS: letter-match grading stays harness-side | [card](packs/mmlu-via-inspect-evals/card.html) | PASS |

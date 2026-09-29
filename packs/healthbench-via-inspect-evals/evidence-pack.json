@@ -151,7 +151,7 @@
       },
       {
         "item": "healthbench_meta_eval validation (29,511 physician-graded items)",
-        "reason": "Lives outside the eval definition artifact. The card audits the definition, not the paper; documented in PROVENANCE.json so the boundary is explicit."
+        "reason": "Ships in the task package: DATASET_URLS['meta_eval'] in dataset.py pins the 29,511-item physician-graded set and meta_evaluation.py scores judge-vs-physician agreement (macro F1). This card translates the main eval subset only and does not encode those labels; the meta_eval subset is audited as its own card (healthbench-meta-eval-via-inspect-evals)."
       }
     ],
     "notes": "Answer-bearing material is not applicable here: the agent sees only the conversation, and the rubrics are harness-side by construction."
