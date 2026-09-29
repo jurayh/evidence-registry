@@ -159,20 +159,29 @@ def main() -> int:
         if spec["method"] == "datasets_server_rows":
             data = json.loads(get(ds["location"]))
             return [r["row"] for r in data["rows"][:spec.get("length", 12)]]
+        if spec["method"] == "raw_bytes":
+            # Whole-file fetch: the pack pins the file's own sha256 (e.g. a
+            # CSV the task source itself pins). The raw bytes are hashed
+            # directly, not a record list.
+            return get(ds["location"])
         raise RuntimeError(f"unknown dataset fetch_spec method: {spec['method']}")
 
-    ds_hash, ds_n, ds_ok = "", 0, False
+    ds_hash, ds_detail, ds_ok = "", "", False
     for _ in range(3):
         consumed = fetch_consumed()
-        ds_hash = sha256_bytes(canon_json(consumed))
-        ds_n = len(consumed)
+        if isinstance(consumed, bytes):
+            ds_hash = sha256_bytes(consumed)
+            ds_detail = f"{len(consumed)} bytes"
+        else:
+            ds_hash = sha256_bytes(canon_json(consumed))
+            ds_detail = f"{len(consumed)} records"
         if ds_hash == ds["pin"]["content_sha256"]:
             ds_ok = True
             break
         time.sleep(2)
     ok &= check("input:dataset_sample content hash", ds_ok,
                 f"got {ds_hash[:12]}, want {ds['pin']['content_sha256'][:12]} "
-                f"({ds_n} records)")
+                f"({ds_detail})")
 
     # 3. Builder script: byte-identical.
     b = inputs["builder"]
