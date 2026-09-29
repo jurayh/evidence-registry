@@ -37,6 +37,34 @@ jobs:
           sys.exit(0 if ok else 1)
           EOF
 
+      - name: Check published cards
+        run: |
+          python3 - <<'EOF'
+          import glob, hashlib, importlib.util, json, sys
+          spec = importlib.util.spec_from_file_location("vp", "verify_pack.py")
+          vp = importlib.util.module_from_spec(spec)
+          spec.loader.exec_module(vp)
+          ok = True
+          for path in sorted(glob.glob('packs/*/evidence-pack.json')):
+              pid = path.split('/')[1]
+              card = f'packs/{pid}/card.html'
+              pack = json.load(open(path))
+              want = pack["expected_card"]["sha256"]
+              try:
+                  html = open(card, encoding="utf-8").read()
+              except FileNotFoundError:
+                  print(f"CARD MISSING {card}")
+                  ok = False
+                  continue
+              got = hashlib.sha256(vp.canonicalize_card(html).encode("utf-8")).hexdigest()
+              if got == want:
+                  print(f"CARD OK {card}")
+              else:
+                  print(f"CARD STALE {card}: got {got[:12]}, want {want[:12]}")
+                  ok = False
+          sys.exit(0 if ok else 1)
+          EOF
+
       - name: Verify all packs
         run: |
           fail=0

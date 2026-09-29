@@ -32,11 +32,11 @@ artifacts after a rebrand, and regeneration surfaced both.
 
 ## Packs
 
-| Pack | Audit result | Stranger test |
-|------|--------------|---------------|
-| [`healthbench-via-inspect-evals`](packs/healthbench-via-inspect-evals/evidence-pack.json) | 85/100 BLOCKED: model judge with no calibration set | PASS |
-| [`swe-bench-verified-via-inspect-evals`](packs/swe-bench-verified-via-inspect-evals/evidence-pack.json) | 100/100 PASS: grading stays harness-side | PASS |
-| [`writingbench-via-inspect-evals`](packs/writingbench-via-inspect-evals/evidence-pack.json) | 85/100 BLOCKED: an anchored rubric is not calibration | PASS |
+| Pack | Audit result | Card | Stranger test |
+|------|--------------|------|---------------|
+| [`healthbench-via-inspect-evals`](packs/healthbench-via-inspect-evals/evidence-pack.json) | 85/100 BLOCKED: model judge with no calibration set | [card](packs/healthbench-via-inspect-evals/card.html) | PASS |
+| [`swe-bench-verified-via-inspect-evals`](packs/swe-bench-verified-via-inspect-evals/evidence-pack.json) | 100/100 PASS: grading stays harness-side | [card](packs/swe-bench-verified-via-inspect-evals/card.html) | PASS |
+| [`writingbench-via-inspect-evals`](packs/writingbench-via-inspect-evals/evidence-pack.json) | 85/100 BLOCKED: an anchored rubric is not calibration | [card](packs/writingbench-via-inspect-evals/card.html) | PASS |
 
 "Stranger test" means: a clean machine, only public inputs, `verify_pack.py`
 exits 0, the card is reproduced.
