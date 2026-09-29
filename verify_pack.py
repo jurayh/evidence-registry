@@ -145,14 +145,27 @@ def main() -> int:
     ok &= verify_task_definition_git(inputs["task_definition"])
 
     # 2. Dataset sample: re-fetch, hash exactly the consumed records.
+    # The fetch strategy comes from the pack: the dataset_sample input may
+    # carry a fetch_spec; packs without one keep the original behavior
+    # (first N complete JSONL records via ranged reads).
     # Retried on mismatch: CDN edges can transiently serve byte-different but
     # value-identical serializations; persistent mismatch means real drift.
     ds = inputs["dataset_sample"]
+    spec = ds.get("fetch_spec") or {"method": "jsonl_ranged_head", "records": 12}
+
+    def fetch_consumed():
+        if spec["method"] == "jsonl_ranged_head":
+            return fetch_jsonl_head(ds["location"], spec.get("records", 12))
+        if spec["method"] == "datasets_server_rows":
+            data = json.loads(get(ds["location"]))
+            return [r["row"] for r in data["rows"][:spec.get("length", 12)]]
+        raise RuntimeError(f"unknown dataset fetch_spec method: {spec['method']}")
+
     ds_hash, ds_n, ds_ok = "", 0, False
     for _ in range(3):
-        lines = fetch_jsonl_head(ds["location"], 12)
-        ds_hash = sha256_bytes(canon_json(lines))
-        ds_n = len(lines)
+        consumed = fetch_consumed()
+        ds_hash = sha256_bytes(canon_json(consumed))
+        ds_n = len(consumed)
         if ds_hash == ds["pin"]["content_sha256"]:
             ds_ok = True
             break
@@ -169,11 +182,20 @@ def main() -> int:
     builder_path = work / "build_real_cards.py"
     builder_path.write_bytes(builder_bytes)
 
-    # 4. Rebuild the artifact with the pinned builder.
+    # 4. Rebuild the artifact with the pinned builder. The pack names the
+    # builder entry point (build_function); packs without one keep the
+    # original behavior (build_healthbench).
     spec = importlib.util.spec_from_file_location("builder", builder_path)
     builder = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(builder)
-    artifact_dir = builder.build_healthbench(work / "artifacts")
+    build_fn_name = pack.get("build_function", "build_healthbench")
+    build_fn = getattr(builder, build_fn_name, None)
+    if not callable(build_fn):
+        check("builder exposes " + build_fn_name, False, "not found in builder script")
+        print()
+        print("KILL CRITERION: FAIL -- see failing checks above.")
+        return 1
+    artifact_dir = build_fn(work / "artifacts")
 
     manifest_files = {f.name: sha256_bytes(f.read_bytes())
                       for f in sorted(artifact_dir.iterdir()) if f.is_file()}
