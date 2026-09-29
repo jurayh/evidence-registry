@@ -1,0 +1,48 @@
+name: verify-packs
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  schedule:
+    # Weekly drift detection: upstream sources can change under a pinned URL.
+    - cron: "0 6 * * 1"
+  workflow_dispatch:
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Validate pack schemas
+        run: |
+          pip install jsonschema
+          python3 - <<'EOF'
+          import glob, json, jsonschema, sys
+          schema = json.load(open('schema/evidence-pack.schema.json'))
+          ok = True
+          for path in sorted(glob.glob('packs/*/evidence-pack.json')):
+              pack = json.load(open(path))
+              try:
+                  jsonschema.validate(pack, schema)
+                  print(f"SCHEMA OK {path}")
+              except jsonschema.ValidationError as e:
+                  print(f"SCHEMA FAIL {path}: {e.message}")
+                  ok = False
+          sys.exit(0 if ok else 1)
+          EOF
+
+      - name: Verify all packs
+        run: |
+          fail=0
+          for pack in packs/*/evidence-pack.json; do
+            id=$(basename "$(dirname "$pack")")
+            echo "=== verifying $id ==="
+            python3 verify_pack.py "$pack" --work-dir "/tmp/ep_work_$id" || fail=1
+          done
+          exit $fail

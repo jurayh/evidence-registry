@@ -1,0 +1,65 @@
+# Contributing a pack
+
+A pack is one `evidence-pack.json` per card, written against
+`schema/evidence-pack.schema.json`. The two packs in `packs/` are the reference
+implementations: one BLOCKED card, one clean PASS.
+
+## The bar
+
+The registry's promise is that a stranger can regenerate your card from public
+inputs alone. Your pack must pass the verifier from a clean directory:
+
+```bash
+python3 verify_pack.py packs/<your-card-id>/evidence-pack.json --work-dir /tmp/ep_work
+```
+
+Exit 0 or the pack does not merge. CI runs the verifier on every pack for every
+PR, so an unrelated pack going red blocks you too. That is intentional: a
+registry whose old entries rot is not a registry.
+
+## Authoring a pack
+
+1. Translate the benchmark definition from pinned public sources only. Encode
+   only facts present in those sources. Leave out anything the definition does
+   not say, and document the omission. Never invent traces: definition-level
+   cards have no run file. Keep answer-bearing material out of the
+   agent-visible artifact even when it is public, and document the exclusion.
+2. Run the pinned harness and generate the card. Record the exact version.
+3. Author `packs/<card-id>/evidence-pack.json` following the schema. Validate
+   it locally:
+   ```bash
+   pip install jsonschema
+   python3 -c "
+   import json, jsonschema
+   schema = json.load(open('schema/evidence-pack.schema.json'))
+   pack = json.load(open('packs/<your-card-id>/evidence-pack.json'))
+   jsonschema.validate(pack, schema)
+   print('schema OK')
+   "
+   ```
+4. Run the verifier locally until it exits 0. Fix the pack, not the verifier.
+5. Open a PR. CI re-verifies every pack, not just yours.
+
+## Rules the spike forced
+
+These are load-bearing. `SPIKE_NOTES.md` has the reasoning.
+
+- Public or invalid. Every input must be fetchable without auth. If an input
+  cannot be public, the pack cannot exist.
+- Pin content, not just location. A URL plus the SHA-256 of the exact bytes
+  consumed. Upstream drift must fail loudly.
+- Canonicalization is part of the pack. Generation timestamps are stripped by
+  a documented rule. The harness version string is never normalized away.
+- Absence is explicit. No runs means `runs: []` with a coverage note naming
+  which checks stay silent, and `cost_summary: null` with a reason. Never omit
+  silently.
+- One canonical hash form everywhere: sorted keys, compact separators, UTF-8.
+- Task-definition pins are human-auditable. The machine-verifiable link is the
+  builder script's content hash. Say so honestly in the pack.
+
+## What CI does
+
+`.github/workflows/verify.yml` validates every pack against the schema and
+runs the verifier over each one. It runs on every push to main, every pull
+request, and weekly on Mondays: the weekly run is drift detection, catching
+upstream sources that changed under a pinned URL.

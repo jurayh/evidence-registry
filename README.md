@@ -4,20 +4,35 @@ Versioned integrity cards for AI benchmarks. Each card binds an executable Evalw
 audit to pinned public inputs and a one-command regeneration, so a stranger can verify it
 from the bundle alone. Not a leaderboard: it rates the measurement system, not the model.
 
-## Status: spike complete
+## Status: two packs, stranger-verified
 
 The spike answered the one question it asked: **can a stranger regenerate an integrity card
-from public inputs?** Yes — the HealthBench card (`packs/healthbench-via-inspect-evals/`)
-regenerates byte-identically (modulo documented timestamps) from a clean directory.
+from public inputs?** Yes. Both packs below regenerate byte-identically (modulo documented
+timestamps) from a clean directory, verified end to end with `verify_pack.py`.
 See `SPIKE_NOTES.md` for the full story, including the design decisions the spike forced
-and a real staleness bug it caught in the evalwarden repo's own example card.
+and real staleness bugs it caught in the evalwarden repo's own example cards.
+
+## Packs
+
+| Pack | Result | Kill criterion |
+|------|--------|----------------|
+| [`healthbench-via-inspect-evals`](packs/healthbench-via-inspect-evals/evidence-pack.json) | 85/100 BLOCKED, 2x JUDGE-001 | PASS: stranger regenerated the card from public inputs |
+| [`swe-bench-verified-via-inspect-evals`](packs/swe-bench-verified-via-inspect-evals/evidence-pack.json) | 100/100 PASS, no findings | PASS: stranger regenerated the card from public inputs |
 
 ## Layout
 
 - `schema/evidence-pack.schema.json` — the evidence pack schema (v1).
 - `verify_pack.py` — the stranger's verifier. Stdlib only.
 - `packs/<card-id>/evidence-pack.json` — one pack per card.
+- `CONTRIBUTING.md` — how to add a pack and the bar it must clear.
+- `.github/workflows/verify.yml` — CI: schema validation plus full verification of every pack on push, PR, and weekly.
 - `SPIKE_NOTES.md` — spike findings and out-of-scope notes.
+
+## Contributing
+
+To add a pack, read `CONTRIBUTING.md`. The short version: translate from pinned public
+sources only, author the pack against the schema, and make `verify_pack.py` exit 0 on it
+from a clean directory. CI re-verifies every pack on every PR.
 
 ## Verify a pack
 
