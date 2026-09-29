@@ -39,6 +39,7 @@ artifacts after a rebrand, and regeneration surfaced both.
 | [`swe-bench-verified-via-inspect-evals`](packs/swe-bench-verified-via-inspect-evals/evidence-pack.json) | 100/100 PASS: grading stays harness-side | [card](packs/swe-bench-verified-via-inspect-evals/card.html) | PASS |
 | [`writingbench-via-inspect-evals`](packs/writingbench-via-inspect-evals/evidence-pack.json) | 85/100 BLOCKED: an anchored rubric is not calibration | [card](packs/writingbench-via-inspect-evals/card.html) | PASS |
 | [`mmlu-via-inspect-evals`](packs/mmlu-via-inspect-evals/evidence-pack.json) | 100/100 PASS: letter-match grading stays harness-side | [card](packs/mmlu-via-inspect-evals/card.html) | PASS |
+| [`gpqa-via-inspect-evals`](packs/gpqa-via-inspect-evals/evidence-pack.json) | 100/100 PASS: letter-match grading stays harness-side | [card](packs/gpqa-via-inspect-evals/card.html) | PASS |
 
 "Stranger test" means: a clean machine, only public inputs, `verify_pack.py`
 exits 0, the card is reproduced.

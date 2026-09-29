@@ -1,0 +1,124 @@
+{
+  "schema_version": "evidence-pack-v1",
+  "pack_id": "gpqa-via-inspect-evals",
+  "created_utc": "2026-09-29 19:42 UTC",
+  "build_function": "build_gpqa",
+  "benchmark": {
+    "name": "GPQA Diamond",
+    "definition_source": "inspect_evals/gpqa",
+    "version": "41d1213cd7a4"
+  },
+  "harness": {
+    "name": "evalwarden",
+    "version": "0.6.1",
+    "install": "pip install evalwarden==0.6.1",
+    "python": "3.12 (advisory; pack authored under 3.12.3)"
+  },
+  "inputs": [
+    {
+      "role": "task_definition",
+      "kind": "git",
+      "location": "https://github.com/UKGovernmentBEIS/inspect_evals",
+      "pin": {
+        "commit": "244e43cc924d1de5a78dad7db259bbd4471c97e7",
+        "paths": [
+          "gpqa.py",
+          "eval.yaml"
+        ]
+      },
+      "public": true,
+      "fetch_note": "Read by the pack author at the pinned commit; the dataset URL and sha256 (GPQA_DIAMOND_DATASET_URL, GPQA_DIAMOND_DATASET_SHA256), the seed-42 choice shuffle (DEFAULT_SHUFFLE_SEED), and the record-to-sample mapping are encoded as constants in the builder script. The multiple-choice prompt template (MultipleChoiceTemplate.SINGLE_ANSWER_COT) is read from UKGovernmentBEIS/inspect_ai src/inspect_ai/solver/_multiple_choice.py and likewise encoded verbatim in the builder. Machine-verifiable link is the builder script content hash; this pin is for human audit of those constants."
+    },
+    {
+      "role": "dataset_sample",
+      "kind": "https",
+      "location": "https://openaipublic.blob.core.windows.net/simple-evals/gpqa_diamond.csv",
+      "pin": {
+        "content_sha256": "41d1213cd7a4998605a26c2798500652572007161b3a92817ba46b35befcd305"
+      },
+      "public": true,
+      "fetch_spec": {
+        "method": "raw_bytes"
+      },
+      "fetch_note": "The whole gpqa_diamond.csv fetched as raw bytes via the verifier's raw_bytes method; the hash covers the complete file and coincides exactly with the sha256 pinned in the task source (GPQA_DIAMOND_DATASET_SHA256). The builder consumes this same file (verifying the same hash before use) and samples the first 12 rows in file order. Any upstream change fails this hash loudly."
+    },
+    {
+      "role": "builder",
+      "kind": "github_raw",
+      "location": "https://raw.githubusercontent.com/jurayh/evalwarden/9007ff8/examples/report-cards/real/build_real_cards.py",
+      "pin": {
+        "content_sha256": "6d4956827b04c520c61af590258ccdebc4555da03f13f04e6c9dc21d8171625f"
+      },
+      "public": true,
+      "fetch_note": "The upstream translation script, fetched at the pinned evalwarden commit and verified byte-for-byte. The verifier imports it and runs build_gpqa only."
+    }
+  ],
+  "task_manifest": {
+    "files": {
+      "PROVENANCE.json": "eaee62f4c701ff80dcac95c3d29de5975714fbd97722490852fa2155bacc9b1f",
+      "dataset.json": "3e23c01bfde1c87275f290851c925e95caa1a76b026c713d4c65e184ee3ece61",
+      "environment.json": "420b32f6eabe7ae4255ed43c8460c357e6a0e8a4157bafca7e68ea846b88e583",
+      "grader.json": "4fa7154af7a5b7448b48de9c5ab3f69494afde71fedb242d1dad4c370690340e"
+    },
+    "sha256": "15b382773509132cc1e49cc9342ad62a99f7038ec8d7f07918b40d83b3735d48"
+  },
+  "translation": {
+    "excluded": [
+      {
+        "item": "Correct-answer identity (target letter per question)",
+        "reason": "Public in the dataset but harness-side: it is the sample target that the choice() scorer grades against, which the agent never sees. The integrity question is what the agent can see."
+      },
+      {
+        "item": "Validator metadata columns (expert/non-expert validator accuracy, feedback, timing, etc.)",
+        "reason": "Collected during benchmark construction; the task definition (record_to_sample) does not read them, so they are not part of the instrument."
+      }
+    ],
+    "notes": "The agent prompt is the formatted multiple-choice question only (SINGLE_ANSWER_COT template over question plus seed-42-shuffled lettered choices). The raw CSV lists the correct answer first; the task shuffles choices with a fixed seed (42) so every build presents the same exam. The pack samples the first 12 CSV rows in file order, matching the task's own sample order (no dataset-level shuffle)."
+  },
+  "audit_result": {
+    "result": {
+      "eval_id": "GPQA Diamond via inspect_evals",
+      "adapter": "inspect 0.1.0",
+      "verdict": "PASS",
+      "score": 100,
+      "findings": [],
+      "digests": {
+        "dataset.json": "3e23c01bfde1c87275f290851c925e95caa1a76b026c713d4c65e184ee3ece61",
+        "environment.json": "420b32f6eabe7ae4255ed43c8460c357e6a0e8a4157bafca7e68ea846b88e583",
+        "grader.json": "4fa7154af7a5b7448b48de9c5ab3f69494afde71fedb242d1dad4c370690340e"
+      },
+      "unsupported": [
+        "dataset.json:notes",
+        "grader.json:notes"
+      ]
+    },
+    "sha256": "906bedbaf31f06f1b933ff0128b9879d673d3d79b5e7e82ae8ce249af613e08f"
+  },
+  "runs": [],
+  "runs_coverage_note": "Definition-level card: no run records exist. Without runs, COST-002..004 and the attempt leg of GRAD-002 cannot fire; JUDGE-001..006 do not apply to the script grader. The audit correctly stays silent about them. A definition-level card is a floor, not a ceiling.",
+  "cost_summary": null,
+  "cost_summary_absent_reason": "no_run_records",
+  "expected_card": {
+    "filename": "gpqa-via-inspect-evals.html",
+    "sha256": "b70e8444e56039f614035fa0484db1e9dfacf386aa4774585150907080b1eb2d"
+  },
+  "canonicalization": {
+    "applies_to": "the generated card HTML, before sha256",
+    "rule": "Two mechanical substitutions: (1) replace <footer>...</footer> with <footer></footer>; (2) replace the methodology-table Generated row timestamp cell with the literal TIMESTAMP. The harness version string is kept: the pack pins the exact version, so a version mismatch must fail, not be normalized away."
+  },
+  "repro": {
+    "command": "Save the pack as evidence-pack.json, then run: curl -sSL https://raw.githubusercontent.com/jurayh/evidence-registry/dc238b3/verify_pack.py -o /tmp/ep_verify.py && python3 /tmp/ep_verify.py evidence-pack.json --work-dir /tmp/ep_work",
+    "verifier": {
+      "location": "https://github.com/jurayh/evidence-registry/blob/main/verify_pack.py",
+      "pin": {
+        "commit": "dc238b3",
+        "content_sha256": "d125290240efb3de092ac1ccf2a0816897637e4b294537bf6d1f6a8855b5f1d7"
+      }
+    }
+  },
+  "kill_criterion": {
+    "question": "can a stranger regenerate this card from public inputs?",
+    "status": "pass",
+    "verifier_note": "2026-09-29: stranger-run from a clean work directory with only the pack and verify_pack.py (pinned at dc238b3, the additive raw_bytes version). 10/10 checks passed: schema version, all inputs public, task-definition pin resolves, dataset sample hash (1,373,492 bytes raw CSV), builder hash, task manifest hash, harness 0.6.1 installed fresh, audit result hash (PASS 100/100, 0 findings), canonical card hash. Kill criterion answered: yes, a stranger can regenerate this card from public inputs."
+  }
+}
