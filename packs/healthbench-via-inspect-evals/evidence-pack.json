@@ -118,12 +118,12 @@
   },
   "pack_id": "healthbench-via-inspect-evals",
   "repro": {
-    "command": "curl -sSL https://raw.githubusercontent.com/jurayh/evidence-registry/PIN_COMMIT/verify_pack.py -o /tmp/ep_verify.py && curl -sSL https://raw.githubusercontent.com/jurayh/evidence-registry/PIN_COMMIT/packs/healthbench-via-inspect-evals/evidence-pack.json -o /tmp/ep_pack.json && python3 /tmp/ep_verify.py /tmp/ep_pack.json --work-dir /tmp/ep_work",
+    "command": "Save the pack as evidence-pack.json, then run: curl -sSL https://raw.githubusercontent.com/jurayh/evidence-registry/c84ad04c26d0af14db15ca7cc6373e5acb08d6ab/verify_pack.py -o /tmp/ep_verify.py && python3 /tmp/ep_verify.py evidence-pack.json --work-dir /tmp/ep_work",
     "verifier": {
       "location": "https://github.com/jurayh/evidence-registry/blob/main/verify_pack.py",
       "pin": {
-        "commit": "TBD: set when the spike is pushed to the new repo",
-        "content_sha256": "TBD"
+        "commit": "c84ad04c26d0af14db15ca7cc6373e5acb08d6ab",
+        "content_sha256": "4692de81db2277949ccb7ceb1e5bc3bd37f1e8c957693914ac1926239159c096"
       }
     }
   },
