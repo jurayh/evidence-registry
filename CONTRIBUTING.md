@@ -1,8 +1,9 @@
 # Contributing a pack
 
 A pack is one `evidence-pack.json` per card, written against
-`schema/evidence-pack.schema.json`. The two packs in `packs/` are the reference
-implementations: one BLOCKED card, one clean PASS.
+`schema/evidence-pack.schema.json`. The packs already in `packs/` are the
+reference implementations: they cover BLOCKED cards, clean PASS cards, and a
+calibrated-judge card.
 
 ## The bar
 

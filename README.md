@@ -30,6 +30,15 @@ It already works. The registry caught two real staleness bugs: the evalwarden
 repo's own HealthBench and SWE-bench example cards had drifted from their
 artifacts after a rebrand, and regeneration surfaced both.
 
+## How this differs
+
+Leaderboards rank models; this checks the tests the scores come from.
+Standards bodies define evals; this independently audits a given eval
+definition. Harnesses run evals; this never runs anything, it audits the
+definition. Audit papers are one-off and unverifiable; every card here
+regenerates from public inputs or it does not ship.
+[How it differs, in detail](docs/how-it-differs.md).
+
 ## Packs
 
 | Pack | Audit result | Card | Stranger test |
@@ -62,18 +71,20 @@ A pack pins everything regeneration needs and nothing it doesn't: the harness
 version, hashes of the translated artifact, each public input (URL or commit
 plus a content hash), material deliberately excluded with reasons, the full
 audit result, explicit nulls with reasons where runs or cost data don't exist,
-the expected card hash, a canonicalization rule for timestamps, and one repro
-command. If any input can't be public, the pack is invalid and the registry
-concept fails for that card.
+the expected card hash, a documented rule that strips timestamps before
+hashing, and one repro command. If any input can't be public, the pack is
+invalid and the registry concept fails for that card.
 
 ## Layout
 
-- `schema/evidence-pack.schema.json` — the evidence pack schema (v1).
-- `verify_pack.py` — the stranger's verifier. Stdlib only.
-- `packs/<card-id>/evidence-pack.json` — one pack per card.
-- `CONTRIBUTING.md` — how to add a pack and the bar it must clear.
-- `.github/workflows/verify.yml` — CI: schema validation plus full verification of every pack on push, PR, and weekly.
-- `SPIKE_NOTES.md` — the original spike notes and the design decisions they forced.
+- `schema/evidence-pack.schema.json`: the evidence pack schema (v1).
+- `verify_pack.py`: the stranger's verifier. Stdlib only.
+- `packs/<card-id>/evidence-pack.json`: one pack per card.
+- `CONTRIBUTING.md`: how to add a pack and the bar it must clear.
+- `docs/`: [how it differs](docs/how-it-differs.md),
+  [anatomy of a pack](docs/anatomy-of-a-pack.md), [FAQ](docs/faq.md).
+- `.github/workflows/verify.yml`: CI: schema validation plus full verification of every pack on push, PR, and weekly.
+- `SPIKE_NOTES.md`: the original spike notes and the design decisions they forced.
 
 ## Contributing
 
