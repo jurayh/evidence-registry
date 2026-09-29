@@ -1,0 +1,133 @@
+{
+  "schema_version": "evidence-pack-v1",
+  "pack_id": "swe-bench-verified-via-inspect-evals",
+  "created_utc": "2026-09-29 18:12 UTC",
+  "build_function": "build_swe_bench",
+  "benchmark": {
+    "name": "SWE-bench Verified",
+    "definition_source": "inspect_evals/swe_bench",
+    "version": "c104f840cc67"
+  },
+  "harness": {
+    "name": "evalwarden",
+    "version": "0.6.1",
+    "install": "pip install evalwarden==0.6.1",
+    "python": "3.12 (advisory; pack authored under 3.12.3)"
+  },
+  "inputs": [
+    {
+      "role": "task_definition",
+      "kind": "git",
+      "location": "https://github.com/UKGovernmentBEIS/inspect_evals",
+      "pin": {
+        "commit": "244e43cc924d1de5a78dad7db259bbd4471c97e7",
+        "paths": [
+          "swe_bench.py",
+          "solvers.py",
+          "scorers.py"
+        ]
+      },
+      "public": true,
+      "fetch_note": "Read by the pack author at the pinned commit; the input prompt template and the Docker image template are encoded as constants in the builder script. Machine-verifiable link is the builder script content hash; this pin is for human audit of those constants."
+    },
+    {
+      "role": "dataset_sample",
+      "kind": "https",
+      "location": "https://datasets-server.huggingface.co/rows?dataset=princeton-nlp/SWE-bench_Verified&config=default&split=test&offset=0&length=12",
+      "pin": {
+        "content_sha256": "ba0c656f3cc0e00c09a5d61fb64ed02d9c56d62146a83d6bb5688190376c99e7"
+      },
+      "public": true,
+      "fetch_spec": {
+        "method": "datasets_server_rows",
+        "length": 12
+      },
+      "fetch_note": "First 12 rows of the test split via the HuggingFace datasets-server rows API. The hash covers exactly the 12 row payloads consumed (r['row'] per row), as a JSON array in canonical form (keys sorted, compact separators, UTF-8). The dataset revision c104f840cc67f8b6eec6f759ebc8b2693d585d4a is pinned in the task source; any upstream change fails this hash loudly."
+    },
+    {
+      "role": "builder",
+      "kind": "github_raw",
+      "location": "https://raw.githubusercontent.com/jurayh/evalwarden/d38080310fff8c2ddb67af6b7d745c52968727a6/examples/report-cards/real/build_real_cards.py",
+      "pin": {
+        "content_sha256": "d4fc1d3811382f224c2a3d20be4b11ad5db5874748cbe51a3e38f7a593063b3c"
+      },
+      "public": true,
+      "fetch_note": "The upstream translation script, fetched at the pinned evalwarden commit and verified byte-for-byte. The verifier imports it and runs build_swe_bench only."
+    }
+  ],
+  "task_manifest": {
+    "files": {
+      "PROVENANCE.json": "72f321b231b4847952e989d6eca613f7138c9fc8f546db837abf8417509c1bb5",
+      "dataset.json": "96ab263d8bf21c740c09ece896109c738fc225ed0ddeb171814626e4f8101b3c",
+      "environment.json": "ae22cc82a1e62b80fa369ff92db09d2c16483ab32e9e8c9b5c7a959131a7d678",
+      "grader.json": "c7ecacf9760312269dae8338280317cdd3c62f73e81d324c03ec12892e491626"
+    },
+    "sha256": "79fab8416ecbb8b2fad7f099643ee369f1d77453bd50103f058ca736af7952d6"
+  },
+  "translation": {
+    "excluded": [
+      {
+        "item": "Gold patch (patch field)",
+        "reason": "Public in the dataset but harness-side: it lives in TaskState sample metadata, which the agent's sandbox tools cannot read. The integrity question is what the agent can see."
+      },
+      {
+        "item": "Test patch (test_patch field)",
+        "reason": "Applied by the scorer after the agent submits; the agent never sees the graded tests and has no write path to the scoring."
+      },
+      {
+        "item": "FAIL_TO_PASS / PASS_TO_PASS test bodies",
+        "reason": "Same as test_patch: scorer-side, never agent-visible."
+      },
+      {
+        "item": "hints_text",
+        "reason": "Metadata-side; not part of the agent prompt."
+      }
+    ],
+    "notes": "Answer-bearing material (gold patches, test patches) is public in the dataset but excluded by construction: the integrity question is whether the agent can see it, and the task definition keeps it harness-side. Drift note: the evalwarden repo's committed example card for this benchmark (examples/report-cards/real/swe-bench-verified-via-inspect-evals.html) is stale relative to a 0.6.1 regeneration: it names tool version 0.6.0 in the methodology table and shows dataset.json digest fc2669e1530b, while the pinned artifact hashes to 96ab263d8bf2. The registry card is the regenerated one; the upstream card was left untouched."
+  },
+  "audit_result": {
+    "result": {
+      "eval_id": "SWE-bench Verified via inspect_evals",
+      "adapter": "inspect 0.1.0",
+      "verdict": "PASS",
+      "score": 100,
+      "findings": [],
+      "digests": {
+        "dataset.json": "96ab263d8bf21c740c09ece896109c738fc225ed0ddeb171814626e4f8101b3c",
+        "environment.json": "ae22cc82a1e62b80fa369ff92db09d2c16483ab32e9e8c9b5c7a959131a7d678",
+        "grader.json": "c7ecacf9760312269dae8338280317cdd3c62f73e81d324c03ec12892e491626"
+      },
+      "unsupported": [
+        "dataset.json:notes",
+        "grader.json:notes"
+      ]
+    },
+    "sha256": "4ebe142c859694262e982665b80bc3b90a232f8f43235a91ee16af76a46e43be"
+  },
+  "runs": [],
+  "runs_coverage_note": "Definition-level card: no run records exist. Without runs, COST-002..004 and the attempt leg of GRAD-002 cannot fire; JUDGE-001..006 do not apply to the script grader. The audit correctly stays silent about them. A definition-level card is a floor, not a ceiling.",
+  "cost_summary": null,
+  "cost_summary_absent_reason": "no_run_records",
+  "expected_card": {
+    "filename": "swe-bench-verified-via-inspect-evals.html",
+    "sha256": "1231cf8e65eacf3179ba302179a9c90bd965c72462f6a9312d4c2d4af6ab72d0"
+  },
+  "canonicalization": {
+    "applies_to": "the generated card HTML, before sha256",
+    "rule": "Two mechanical substitutions: (1) replace <footer>...</footer> with <footer></footer>; (2) replace the methodology-table Generated row timestamp cell with the literal TIMESTAMP. The harness version string is kept: the pack pins the exact version, so a version mismatch must fail, not be normalized away."
+  },
+  "repro": {
+    "command": "Save the pack as evidence-pack.json, then run: curl -sSL https://raw.githubusercontent.com/jurayh/evidence-registry/7615cc6ebcb1045ba5b04134258c9273a9935dc4/verify_pack.py -o /tmp/ep_verify.py && python3 /tmp/ep_verify.py evidence-pack.json --work-dir /tmp/ep_work",
+    "verifier": {
+      "location": "https://github.com/jurayh/evidence-registry/blob/main/verify_pack.py",
+      "pin": {
+        "commit": "7615cc6ebcb1045ba5b04134258c9273a9935dc4",
+        "content_sha256": "9d78e75f3f7384600e520876b1aa821d35167a9af566dbc57038bdce4df7efaa"
+      }
+    }
+  },
+  "kill_criterion": {
+    "question": "can a stranger regenerate this card from public inputs?",
+    "status": "unverified"
+  }
+}
