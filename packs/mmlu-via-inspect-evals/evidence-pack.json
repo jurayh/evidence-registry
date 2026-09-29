@@ -1,0 +1,121 @@
+{
+  "schema_version": "evidence-pack-v1",
+  "pack_id": "mmlu-via-inspect-evals",
+  "created_utc": "2026-09-29 19:08 UTC",
+  "build_function": "build_mmlu",
+  "benchmark": {
+    "name": "MMLU",
+    "definition_source": "inspect_evals/mmlu",
+    "version": "c30699e8356d"
+  },
+  "harness": {
+    "name": "evalwarden",
+    "version": "0.6.1",
+    "install": "pip install evalwarden==0.6.1",
+    "python": "3.12 (advisory; pack authored under 3.12.3)"
+  },
+  "inputs": [
+    {
+      "role": "task_definition",
+      "kind": "git",
+      "location": "https://github.com/UKGovernmentBEIS/inspect_evals",
+      "pin": {
+        "commit": "244e43cc924d1de5a78dad7db259bbd4471c97e7",
+        "paths": [
+          "mmlu.py",
+          "eval.yaml"
+        ]
+      },
+      "public": true,
+      "fetch_note": "Read by the pack author at the pinned commit; the dataset revision pin (MMLU_REVISION) and the prompt-formatting functions are encoded as constants in the builder script. The multiple-choice prompt template (MultipleChoiceTemplate.SINGLE_ANSWER) is read from UKGovernmentBEIS/inspect_ai src/inspect_ai/solver/_multiple_choice.py and likewise encoded verbatim in the builder. Machine-verifiable link is the builder script content hash; this pin is for human audit of those constants."
+    },
+    {
+      "role": "dataset_sample",
+      "kind": "https",
+      "location": "https://datasets-server.huggingface.co/rows?dataset=cais/mmlu&config=all&split=test&offset=0&length=12",
+      "pin": {
+        "content_sha256": "ec0860c2f64cb2173ec7cd41f71d8b4dcea3e244f3bad28a94fb61a4f1f95243"
+      },
+      "public": true,
+      "fetch_spec": {
+        "method": "datasets_server_rows",
+        "length": 12
+      },
+      "fetch_note": "First 12 rows of the test split (config 'all') via the HuggingFace datasets-server rows API. The hash covers exactly the 12 row payloads consumed (r['row'] per row), as a JSON array in canonical form (keys sorted, compact separators, UTF-8). The dataset revision c30699e8356da336a370243923dbaf21066bb9fe is pinned in the task source; any upstream change fails this hash loudly."
+    },
+    {
+      "role": "builder",
+      "kind": "github_raw",
+      "location": "https://raw.githubusercontent.com/jurayh/evalwarden/50bcd17/examples/report-cards/real/build_real_cards.py",
+      "pin": {
+        "content_sha256": "b4d3c1c669d51a364e706dbdf26d015ea088c72ebc904b3f309f4c9d53374daf"
+      },
+      "public": true,
+      "fetch_note": "The upstream translation script, fetched at the pinned evalwarden commit and verified byte-for-byte. The verifier imports it and runs build_mmlu only."
+    }
+  ],
+  "task_manifest": {
+    "files": {
+      "PROVENANCE.json": "dae7374baa8082caa6983d7956804c2484a8f2aa2a95ad8376761b48267f88cc",
+      "dataset.json": "7fadc808205215bb0b2c410e7006bafaa9ed163776473b6884b0aebc3cad9c2a",
+      "environment.json": "a7bb78f4f7b40308b7eeac76101aa375becf4ff4a75820731ef836533bb47686",
+      "grader.json": "4fa7154af7a5b7448b48de9c5ab3f69494afde71fedb242d1dad4c370690340e"
+    },
+    "sha256": "6f3d24b1bd46b34783806cd1c457aa624dbe88147cde71c3c01fd3afa77e3990"
+  },
+  "translation": {
+    "excluded": [
+      {
+        "item": "Answer index (0-3 per question)",
+        "reason": "Public in the dataset but harness-side: it is the sample target that the choice() scorer grades against, which the agent never sees. The integrity question is what the agent can see."
+      }
+    ],
+    "notes": "The agent prompt is the formatted multiple-choice question only (SINGLE_ANSWER template over question plus lettered choices). The task's default 0-shot draw shuffles with seed 42 after dedup; the pack samples the first 12 rows in dataset order as a definition sample illustrating the instrument, not a particular eval draw."
+  },
+  "audit_result": {
+    "result": {
+      "eval_id": "MMLU via inspect_evals",
+      "adapter": "inspect 0.1.0",
+      "verdict": "PASS",
+      "score": 100,
+      "findings": [],
+      "digests": {
+        "dataset.json": "7fadc808205215bb0b2c410e7006bafaa9ed163776473b6884b0aebc3cad9c2a",
+        "environment.json": "a7bb78f4f7b40308b7eeac76101aa375becf4ff4a75820731ef836533bb47686",
+        "grader.json": "4fa7154af7a5b7448b48de9c5ab3f69494afde71fedb242d1dad4c370690340e"
+      },
+      "unsupported": [
+        "dataset.json:notes",
+        "grader.json:notes"
+      ]
+    },
+    "sha256": "6f949c944a7590875ad7d630d7e71ba2c027976a2c5ff9d74359001e23638436"
+  },
+  "runs": [],
+  "runs_coverage_note": "Definition-level card: no run records exist. Without runs, COST-002..004 and the attempt leg of GRAD-002 cannot fire; JUDGE-001..006 do not apply to the script grader. The audit correctly stays silent about them. A definition-level card is a floor, not a ceiling.",
+  "cost_summary": null,
+  "cost_summary_absent_reason": "no_run_records",
+  "expected_card": {
+    "filename": "mmlu-via-inspect-evals.html",
+    "sha256": "f2ebbe6226d87cbd884b651eb379259b5dabab7bae94266c0537c3693b0ae6d2"
+  },
+  "canonicalization": {
+    "applies_to": "the generated card HTML, before sha256",
+    "rule": "Two mechanical substitutions: (1) replace <footer>...</footer> with <footer></footer>; (2) replace the methodology-table Generated row timestamp cell with the literal TIMESTAMP. The harness version string is kept: the pack pins the exact version, so a version mismatch must fail, not be normalized away."
+  },
+  "repro": {
+    "command": "Save the pack as evidence-pack.json, then run: curl -sSL https://raw.githubusercontent.com/jurayh/evidence-registry/7615cc6ebcb1045ba5b04134258c9273a9935dc4/verify_pack.py -o /tmp/ep_verify.py && python3 /tmp/ep_verify.py evidence-pack.json --work-dir /tmp/ep_work",
+    "verifier": {
+      "location": "https://github.com/jurayh/evidence-registry/blob/main/verify_pack.py",
+      "pin": {
+        "commit": "7615cc6ebcb1045ba5b04134258c9273a9935dc4",
+        "content_sha256": "9d78e75f3f7384600e520876b1aa821d35167a9af566dbc57038bdce4df7efaa"
+      }
+    }
+  },
+  "kill_criterion": {
+    "question": "can a stranger regenerate this card from public inputs?",
+    "status": "pass",
+    "verifier_note": "2026-09-29: stranger-run from a clean directory with only the pack and verify_pack.py (pinned at 7615cc6ebcb1045ba5b04134258c9273a9935dc4). 9/9 checks passed: schema version, all inputs public, task-definition pin resolves, dataset sample hash (12 rows), builder hash, task manifest hash, harness 0.6.1 installed fresh, audit result hash (PASS 100/100, 0 findings), canonical card hash. Kill criterion answered: yes, a stranger can regenerate this card from public inputs."
+  }
+}
