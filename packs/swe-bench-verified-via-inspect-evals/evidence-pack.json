@@ -128,6 +128,7 @@
   },
   "kill_criterion": {
     "question": "can a stranger regenerate this card from public inputs?",
-    "status": "unverified"
+    "status": "pass",
+    "verifier_note": "2026-09-29: stranger-run from a clean directory with only the pack and verify_pack.py (pinned at 7615cc6ebcb1045ba5b04134258c9273a9935dc4). 9/9 checks passed: schema version, all inputs public, task-definition pin resolves, dataset sample hash (12 rows), builder hash, task manifest hash, harness 0.6.1 installed fresh, audit result hash (PASS 100/100, 0 findings), canonical card hash. Kill criterion answered: yes, a stranger can regenerate this card from public inputs."
   }
 }
