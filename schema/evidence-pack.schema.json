@@ -1,0 +1,342 @@
+{
+  "$id": "https://github.com/jurayh/evidence-registry/blob/main/schema/evidence-pack.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "description": "Minimal portable bundle from which a stranger can regenerate one Evalwarden integrity card using only public inputs. If any input cannot be public, the pack is invalid and the registry concept fails for that card.",
+  "properties": {
+    "audit_result": {
+      "description": "The full machine-readable audit output, embedded so a stranger can diff findings without re-running anything.",
+      "properties": {
+        "result": {
+          "description": "Exact JSON emitted by the audit command for this artifact.",
+          "type": "object"
+        },
+        "sha256": {
+          "description": "sha256 of the canonical JSON serialization of 'result'.",
+          "type": "string"
+        }
+      },
+      "required": [
+        "sha256",
+        "result"
+      ],
+      "type": "object"
+    },
+    "benchmark": {
+      "properties": {
+        "definition_source": {
+          "description": "Which task definition was audited, e.g. 'inspect_evals/healthbench'.",
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "version": {
+          "description": "Benchmark version or snapshot date as published.",
+          "type": "string"
+        }
+      },
+      "required": [
+        "name",
+        "version",
+        "definition_source"
+      ],
+      "type": "object"
+    },
+    "canonicalization": {
+      "properties": {
+        "applies_to": {
+          "type": "string"
+        },
+        "rule": {
+          "description": "Exact, implementable rule, e.g. 'remove the <footer>...</footer> block containing the generation timestamp before hashing'.",
+          "type": "string"
+        }
+      },
+      "required": [
+        "rule",
+        "applies_to"
+      ],
+      "type": "object"
+    },
+    "cost_summary": {
+      "description": "Cost summary when runs exist. Must be explicit null (not omitted) when there are no runs.",
+      "type": [
+        "object",
+        "null"
+      ]
+    },
+    "cost_summary_absent_reason": {
+      "description": "Required when cost_summary is null, e.g. 'no_run_records'.",
+      "type": "string"
+    },
+    "created_utc": {
+      "description": "ISO-8601 UTC timestamp of pack authoring. Informational only; never part of any hash.",
+      "type": "string"
+    },
+    "expected_card": {
+      "properties": {
+        "filename": {
+          "type": "string"
+        },
+        "sha256": {
+          "description": "sha256 of the card HTML AFTER canonicalization.",
+          "type": "string"
+        }
+      },
+      "required": [
+        "filename",
+        "sha256"
+      ],
+      "type": "object"
+    },
+    "harness": {
+      "properties": {
+        "install": {
+          "description": "Public install command, e.g. 'pip install evalwarden==0.6.1'.",
+          "type": "string"
+        },
+        "name": {
+          "const": "evalwarden",
+          "type": "string"
+        },
+        "python": {
+          "description": "Python version the pack was authored under, e.g. '3.11'. Advisory.",
+          "type": "string"
+        },
+        "version": {
+          "description": "Exact pinned version, e.g. '0.6.1'. The expected card hash is only valid for this version.",
+          "type": "string"
+        }
+      },
+      "required": [
+        "name",
+        "version",
+        "install"
+      ],
+      "type": "object"
+    },
+    "inputs": {
+      "description": "Every byte the regeneration needs, pinned. No input may require auth or a private URL.",
+      "items": {
+        "properties": {
+          "fetch_note": {
+            "description": "How the bytes are obtained, e.g. 'first 12 JSONL records via ranged reads'.",
+            "type": "string"
+          },
+          "kind": {
+            "enum": [
+              "git",
+              "https",
+              "github_raw"
+            ],
+            "type": "string"
+          },
+          "location": {
+            "description": "Repo URL, HTTPS URL, or raw-file URL. Must be public.",
+            "type": "string"
+          },
+          "pin": {
+            "description": "How the input is pinned. Git inputs pin a full commit SHA; content inputs pin content_sha256 of the exact fetched bytes. Canonical serialization for hashing: JSON with keys sorted, compact separators (',', ':'), UTF-8 encoding. The pack author and the verifier must use the same canonical form; a mismatch fails the check rather than silently passing.",
+            "properties": {
+              "commit": {
+                "type": "string"
+              },
+              "content_sha256": {
+                "type": "string"
+              },
+              "paths": {
+                "description": "For git inputs: the exact files read.",
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              }
+            },
+            "type": "object"
+          },
+          "public": {
+            "const": true,
+            "description": "Must be true. A false here kills the pack.",
+            "type": "boolean"
+          },
+          "role": {
+            "description": "What this input is for: 'task_definition' | 'dataset_sample' | 'builder' | 'grader_template' | other.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "role",
+          "kind",
+          "location",
+          "pin"
+        ],
+        "type": "object"
+      },
+      "minItems": 1,
+      "type": "array"
+    },
+    "kill_criterion": {
+      "properties": {
+        "question": {
+          "const": "can a stranger regenerate this card from public inputs?",
+          "type": "string"
+        },
+        "status": {
+          "description": "'unverified' at pack authoring; set by the verifier after a stranger-run.",
+          "enum": [
+            "unverified",
+            "pass",
+            "fail"
+          ],
+          "type": "string"
+        },
+        "verifier_note": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "question",
+        "status"
+      ],
+      "type": "object"
+    },
+    "pack_id": {
+      "description": "Stable card identifier, e.g. 'healthbench-via-inspect-evals'. Matches the card filename stem.",
+      "type": "string"
+    },
+    "repro": {
+      "properties": {
+        "command": {
+          "description": "One shell command a stranger pastes into a fresh machine. Fetches the verifier and runs it; the verifier does everything else from the pack alone.",
+          "type": "string"
+        },
+        "verifier": {
+          "properties": {
+            "location": {
+              "description": "Public URL of verify_pack.py.",
+              "type": "string"
+            },
+            "pin": {
+              "properties": {
+                "commit": {
+                  "type": "string"
+                },
+                "content_sha256": {
+                  "type": "string"
+                }
+              },
+              "type": "object"
+            }
+          },
+          "required": [
+            "location",
+            "pin"
+          ],
+          "type": "object"
+        }
+      },
+      "required": [
+        "command",
+        "verifier"
+      ],
+      "type": "object"
+    },
+    "runs": {
+      "description": "Pointers to raw run records (trace URIs, run IDs). Empty when the card is definition-level.",
+      "items": {
+        "properties": {
+          "content_sha256": {
+            "type": "string"
+          },
+          "kind": {
+            "type": "string"
+          },
+          "pointer": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "pointer",
+          "kind"
+        ],
+        "type": "object"
+      },
+      "type": "array"
+    },
+    "runs_coverage_note": {
+      "description": "Required when runs is empty: states what the card cannot say without run records (e.g. which checks stay silent).",
+      "type": "string"
+    },
+    "schema_version": {
+      "const": "evidence-pack-v1",
+      "description": "Bump on any breaking change to pack semantics.",
+      "type": "string"
+    },
+    "task_manifest": {
+      "description": "Hash of the translated artifact directory exactly as the auditor saw it (dataset.json, environment.json, grader.json, PROVENANCE.json). Canonical form: JSON object mapping relative path -> sha256 of file bytes, keys sorted, serialized with sort_keys and no whitespace beyond separators.",
+      "properties": {
+        "files": {
+          "description": "relative path -> sha256 of file bytes",
+          "type": "object"
+        },
+        "sha256": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "sha256",
+        "files"
+      ],
+      "type": "object"
+    },
+    "translation": {
+      "properties": {
+        "excluded": {
+          "description": "Material deliberately left out of the translated artifact, with reasons. The integrity question is what the agent can see, so public-but-harness-side material (gold patches, test patches) is excluded and the exclusion is documented here.",
+          "items": {
+            "properties": {
+              "item": {
+                "type": "string"
+              },
+              "reason": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "item",
+              "reason"
+            ],
+            "type": "object"
+          },
+          "type": "array"
+        },
+        "notes": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "excluded"
+      ],
+      "type": "object"
+    }
+  },
+  "required": [
+    "schema_version",
+    "pack_id",
+    "created_utc",
+    "benchmark",
+    "harness",
+    "inputs",
+    "task_manifest",
+    "translation",
+    "audit_result",
+    "runs",
+    "cost_summary",
+    "expected_card",
+    "canonicalization",
+    "repro",
+    "kill_criterion"
+  ],
+  "title": "Evidence Pack v1",
+  "type": "object"
+}

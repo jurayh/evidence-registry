@@ -1,0 +1,159 @@
+{
+  "audit_result": {
+    "result": {
+      "eval_id": "HealthBench via inspect_evals",
+      "adapter": "inspect 0.1.0",
+      "verdict": "BLOCKED",
+      "score": 85,
+      "findings": [
+        {
+          "id": "JUDGE-001",
+          "title": "Model judge has no labeled calibration set",
+          "severity": "high",
+          "confidence": "high",
+          "description": "A model judge with no labeled calibration set is an unvalidated measurement instrument: its scores have no demonstrated relationship to human judgment. Unanchored rubrics and unpinned sampling temperature make the verdicts drift further without anyone noticing.",
+          "evidence": [
+            "grader uses model judge openai/gpt-4o-mini with no reference labels attached.",
+            "Judge scores are unvalidated against human judgment."
+          ],
+          "locations": [
+            "judge_run.json -- reference_labels (absent)"
+          ],
+          "remediation": "Collect a labeled calibration set and report judge-vs-human agreement before trusting scores; anchor the rubric scale with explicit examples per level; pin temperature to 0 or take multiple repeats per item.",
+          "fingerprint": "465b1b9814888e38"
+        },
+        {
+          "id": "JUDGE-001",
+          "title": "Judge rubric has no explicit scale anchors",
+          "severity": "medium",
+          "confidence": "high",
+          "description": "A model judge with no labeled calibration set is an unvalidated measurement instrument: its scores have no demonstrated relationship to human judgment. Unanchored rubrics and unpinned sampling temperature make the verdicts drift further without anyone noticing.",
+          "evidence": [
+            "judge rubric defines criteria but no anchored scale levels.",
+            "Without anchors, score meanings drift between runs and reviewers."
+          ],
+          "locations": [
+            "judge_run.json -- judge.scale_anchors (absent)"
+          ],
+          "remediation": "Collect a labeled calibration set and report judge-vs-human agreement before trusting scores; anchor the rubric scale with explicit examples per level; pin temperature to 0 or take multiple repeats per item.",
+          "fingerprint": "789f174f61f5730e"
+        }
+      ],
+      "digests": {
+        "dataset.json": "ab66cf9192b7a6604953bd6f827d856b9640be5364f7a6c87d1fdef695034671",
+        "environment.json": "4db6965f4a2e949c270b608688c39f5385eed4998fd41a1d469726a59fea472c",
+        "grader.json": "622e062f2c74ce3afd1cb2fd3a59ec778f205090af04fba937ed7223b013b5ee"
+      },
+      "unsupported": [
+        "dataset.json:notes",
+        "grader.json:notes"
+      ]
+    },
+    "sha256": "75934bbc312d0b2d1e8a93c666f86fe99c1e8da12fb8ff2a9a3d92e203e9e4f7"
+  },
+  "benchmark": {
+    "definition_source": "inspect_evals/healthbench",
+    "name": "HealthBench",
+    "version": "2025-05-07"
+  },
+  "canonicalization": {
+    "applies_to": "the generated card HTML, before sha256",
+    "rule": "Two mechanical substitutions: (1) replace <footer>...</footer> with <footer></footer>; (2) replace the methodology-table Generated row timestamp cell with the literal TIMESTAMP. The harness version string is kept: the pack pins the exact version, so a version mismatch must fail, not be normalized away."
+  },
+  "cost_summary": null,
+  "cost_summary_absent_reason": "no_run_records",
+  "created_utc": "2026-09-29 17:36 UTC",
+  "expected_card": {
+    "filename": "healthbench-via-inspect-evals.html",
+    "sha256": "3afd7a4fb801da7255f9bc71f628b4956401bfd0d15e4091d1a1599459d71e21"
+  },
+  "harness": {
+    "install": "pip install evalwarden==0.6.1",
+    "name": "evalwarden",
+    "python": "3.12 (advisory; pack authored under 3.12.3)",
+    "version": "0.6.1"
+  },
+  "inputs": [
+    {
+      "fetch_note": "Read by the pack author at the pinned commit; judge defaults (openai/gpt-4o-mini, temperature 0.0) and the GRADER_TEMPLATE are encoded as constants in the builder script. Machine-verifiable link is the builder script content hash; this pin is for human audit of those constants.",
+      "kind": "git",
+      "location": "https://github.com/UKGovernmentBEIS/inspect_evals",
+      "pin": {
+        "commit": "244e43cc924d1de5a78dad7db259bbd4471c97e7",
+        "paths": [
+          "healthbench.py",
+          "scorer.py",
+          "dataset.py",
+          "eval.yaml"
+        ]
+      },
+      "public": true,
+      "role": "task_definition"
+    },
+    {
+      "fetch_note": "First 12 complete JSONL records via ranged reads (2MB chunks). The hash covers exactly the 12 records consumed, as a JSON array of strings in canonical form (keys sorted, compact separators, UTF-8). Any blob drift changes this hash and fails verification loudly.",
+      "kind": "https",
+      "location": "https://openaipublic.blob.core.windows.net/simple-evals/healthbench/2025-05-07-06-14-12_oss_eval.jsonl",
+      "pin": {
+        "content_sha256": "47d39981bfe087023bd681da6e9a81547e4013d84da75990b1c4e7a0913e5dd7"
+      },
+      "public": true,
+      "role": "dataset_sample"
+    },
+    {
+      "fetch_note": "The upstream translation script, fetched at the pinned evalwarden commit and verified byte-for-byte. The verifier imports it and runs build_healthbench only.",
+      "kind": "github_raw",
+      "location": "https://raw.githubusercontent.com/jurayh/evalwarden/d38080310fff8c2ddb67af6b7d745c52968727a6/examples/report-cards/real/build_real_cards.py",
+      "pin": {
+        "content_sha256": "d4fc1d3811382f224c2a3d20be4b11ad5db5874748cbe51a3e38f7a593063b3c"
+      },
+      "public": true,
+      "role": "builder"
+    }
+  ],
+  "kill_criterion": {
+    "question": "can a stranger regenerate this card from public inputs?",
+    "status": "pass",
+    "verifier_note": "2026-09-29: stranger-run from a clean directory with only the pack and verify_pack.py. 10/10 checks passed: schema version, all inputs public, task-definition pin resolves, dataset sample hash, builder hash, task manifest hash, harness 0.6.1 installed fresh, audit result hash (BLOCKED 85/100, 2 findings), canonical card hash. Kill criterion answered: yes, a stranger can regenerate this card from public inputs."
+  },
+  "pack_id": "healthbench-via-inspect-evals",
+  "repro": {
+    "command": "curl -sSL https://raw.githubusercontent.com/jurayh/evidence-registry/PIN_COMMIT/verify_pack.py -o /tmp/ep_verify.py && curl -sSL https://raw.githubusercontent.com/jurayh/evidence-registry/PIN_COMMIT/packs/healthbench-via-inspect-evals/evidence-pack.json -o /tmp/ep_pack.json && python3 /tmp/ep_verify.py /tmp/ep_pack.json --work-dir /tmp/ep_work",
+    "verifier": {
+      "location": "https://github.com/jurayh/evidence-registry/blob/main/verify_pack.py",
+      "pin": {
+        "commit": "TBD: set when the spike is pushed to the new repo",
+        "content_sha256": "TBD"
+      }
+    }
+  },
+  "runs": [],
+  "runs_coverage_note": "Definition-level card: no run records exist. Without runs, COST-002..004, the attempt leg of GRAD-002, and JUDGE-003..006 cannot fire; the audit correctly stays silent about them. A definition-level card is a floor, not a ceiling.",
+  "schema_version": "evidence-pack-v1",
+  "task_manifest": {
+    "files": {
+      "PROVENANCE.json": "e35c8e0a16c656f5babbf3ce676698cafaab61aa0dc6e2eabe78b485e417a8ff",
+      "dataset.json": "ab66cf9192b7a6604953bd6f827d856b9640be5364f7a6c87d1fdef695034671",
+      "environment.json": "4db6965f4a2e949c270b608688c39f5385eed4998fd41a1d469726a59fea472c",
+      "grader.json": "622e062f2c74ce3afd1cb2fd3a59ec778f205090af04fba937ed7223b013b5ee"
+    },
+    "sha256": "381d133f0a9d69e6c3fa4fd798096e92aa6430bc17693743a8995b78f8b8cf90"
+  },
+  "translation": {
+    "excluded": [
+      {
+        "item": "Full rubric criterion texts",
+        "reason": "Rubrics are grader-side; the agent never sees them. Summarized as counts/axes/tags; four verbatim criteria carried in grader.json as a sample of the checklist style."
+      },
+      {
+        "item": "Full 5000-example split (12-record sample)",
+        "reason": "The audited properties (environment boundary, grader config, judge config) do not vary across instances."
+      },
+      {
+        "item": "healthbench_meta_eval validation (29,511 physician-graded items)",
+        "reason": "Lives outside the eval definition artifact. The card audits the definition, not the paper; documented in PROVENANCE.json so the boundary is explicit."
+      }
+    ],
+    "notes": "Answer-bearing material is not applicable here: the agent sees only the conversation, and the rubrics are harness-side by construction."
+  }
+}
