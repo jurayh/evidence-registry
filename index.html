@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Evidence Registry: benchmarks, audited</title>
+<meta name="description" content="Evidence packs for well-known benchmarks. Each pack binds an executable integrity audit to pinned public inputs, so anyone can regenerate the card.">
+<style>
+  :root {
+    --paper: #faf6ef;
+    --card: #fffdf8;
+    --ink: #2a251d;
+    --muted: #6f6656;
+    --line: #e3d9c6;
+    --pass-bg: #e5f3e8;
+    --pass-ink: #146c2e;
+    --pass-line: #a9d6b5;
+    --blocked-bg: #fdecea;
+    --blocked-ink: #a50e0e;
+    --blocked-line: #f2b8b5;
+    --link: #8a5a12;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: Georgia, "Times New Roman", serif;
+    line-height: 1.55;
+  }
+  .wrap { max-width: 880px; margin: 0 auto; padding: 48px 20px 64px; }
+  header { text-align: center; margin-bottom: 40px; }
+  header h1 { font-size: 2.4rem; margin: 0 0 10px; letter-spacing: 0.01em; }
+  .pitch { font-size: 1.15rem; font-style: italic; color: var(--ink); margin: 0 auto 14px; max-width: 620px; }
+  .sub { color: var(--muted); max-width: 640px; margin: 0 auto 18px; font-size: 0.98rem; }
+  nav.top { font-size: 0.95rem; }
+  nav.top a { color: var(--link); margin: 0 10px; }
+  a { color: var(--link); }
+  .filter { text-align: center; margin: 0 0 26px; }
+  .filter input {
+    font: inherit; font-size: 0.95rem; padding: 8px 14px; width: min(420px, 90%);
+    border: 1px solid var(--line); border-radius: 999px; background: var(--card); color: var(--ink);
+  }
+  .pack {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 22px 26px;
+    margin-bottom: 18px;
+    box-shadow: 0 1px 3px rgba(60, 48, 20, 0.06);
+  }
+  .pack-head { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin-bottom: 6px; }
+  .pack h2 { font-size: 1.3rem; margin: 0; }
+  .pill {
+    font-family: Helvetica, Arial, sans-serif; font-size: 0.8rem; font-weight: 700;
+    padding: 3px 12px; border-radius: 999px; border: 1px solid; white-space: nowrap;
+  }
+  .pill.pass { background: var(--pass-bg); color: var(--pass-ink); border-color: var(--pass-line); }
+  .pill.blocked { background: var(--blocked-bg); color: var(--blocked-ink); border-color: var(--blocked-line); }
+  .lesson { margin: 4px 0 12px; font-size: 1.02rem; }
+  .links { font-family: Helvetica, Arial, sans-serif; font-size: 0.88rem; }
+  .links a { margin-right: 18px; }
+  footer {
+    margin-top: 44px; padding-top: 22px; border-top: 1px solid var(--line);
+    text-align: center; color: var(--muted); font-size: 0.95rem;
+  }
+  footer .motto { color: var(--ink); font-weight: bold; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <h1>Evidence Registry</h1>
+  <p class="pitch">Benchmark scores get cited everywhere. Benchmarks themselves never get audited.</p>
+  <p class="sub">Each entry below is an evidence pack: a versioned bundle that binds an executable
+  integrity audit to pinned public inputs. Anyone can rebuild the artifact, re-run the audit,
+  and confirm the card. No trust in the author required.</p>
+  <nav class="top">
+    <a href="https://github.com/jurayh/evidence-registry">GitHub repo and README</a>
+    <a href="docs/how-it-differs.md">How this differs</a>
+    <a href="docs/anatomy-of-a-pack.md">Anatomy of a pack</a>
+    <a href="docs/faq.md">FAQ</a>
+  </nav>
+</header>
+
+<main id="packs">
+
+  <article class="pack" data-name="healthbench">
+    <div class="pack-head">
+      <h2>HealthBench</h2>
+      <span class="pill blocked">85/100 BLOCKED</span>
+    </div>
+    <p class="lesson">A model judge with no calibration set in the definition.</p>
+    <p class="links">
+      <a href="packs/healthbench-via-inspect-evals/card.html">Rendered card</a>
+      <a href="packs/healthbench-via-inspect-evals/evidence-pack.json">Evidence pack (JSON)</a>
+    </p>
+  </article>
+
+  <article class="pack" data-name="healthbench meta eval">
+    <div class="pack-head">
+      <h2>HealthBench meta_eval</h2>
+      <span class="pill pass">95/100 PASS</span>
+    </div>
+    <p class="lesson">The calibrated counterpart: 29,511 physician-graded labels ship in the definition.</p>
+    <p class="links">
+      <a href="packs/healthbench-meta-eval-via-inspect-evals/card.html">Rendered card</a>
+      <a href="packs/healthbench-meta-eval-via-inspect-evals/evidence-pack.json">Evidence pack (JSON)</a>
+    </p>
+  </article>
+
+  <article class="pack" data-name="swe-bench verified">
+    <div class="pack-head">
+      <h2>SWE-bench Verified</h2>
+      <span class="pill pass">100/100 PASS</span>
+    </div>
+    <p class="lesson">Real GitHub issues; the grading tests never reach the agent.</p>
+    <p class="links">
+      <a href="packs/swe-bench-verified-via-inspect-evals/card.html">Rendered card</a>
+      <a href="packs/swe-bench-verified-via-inspect-evals/evidence-pack.json">Evidence pack (JSON)</a>
+    </p>
+  </article>
+
+  <article class="pack" data-name="writingbench">
+    <div class="pack-head">
+      <h2>WritingBench</h2>
+      <span class="pill blocked">85/100 BLOCKED</span>
+    </div>
+    <p class="lesson">An anchored rubric feels like calibration. It is not.</p>
+    <p class="links">
+      <a href="packs/writingbench-via-inspect-evals/card.html">Rendered card</a>
+      <a href="packs/writingbench-via-inspect-evals/evidence-pack.json">Evidence pack (JSON)</a>
+    </p>
+  </article>
+
+  <article class="pack" data-name="mmlu">
+    <div class="pack-head">
+      <h2>MMLU</h2>
+      <span class="pill pass">100/100 PASS</span>
+    </div>
+    <p class="lesson">The most-cited benchmark in AI, instrument checked.</p>
+    <p class="links">
+      <a href="packs/mmlu-via-inspect-evals/card.html">Rendered card</a>
+      <a href="packs/mmlu-via-inspect-evals/evidence-pack.json">Evidence pack (JSON)</a>
+    </p>
+  </article>
+
+  <article class="pack" data-name="gpqa diamond">
+    <div class="pack-head">
+      <h2>GPQA Diamond</h2>
+      <span class="pill pass">100/100 PASS</span>
+    </div>
+    <p class="lesson">Diamond subset: expert-written frontier questions, plain choice grading.</p>
+    <p class="links">
+      <a href="packs/gpqa-via-inspect-evals/card.html">Rendered card</a>
+      <a href="packs/gpqa-via-inspect-evals/evidence-pack.json">Evidence pack (JSON)</a>
+    </p>
+  </article>
+
+</main>
+
+<footer>
+  <p class="motto">Don't trust the card. Regenerate it.</p>
+  <p>Every card on this page regenerates from public inputs alone.
+  <a href="README.md#verify-a-pack-yourself">Verify a pack yourself</a> with one command.</p>
+</footer>
+
+</div>
+
+<script>
+  // Progressive enhancement only: the page is complete without JavaScript.
+  // With JS, a small filter box appears above the pack list.
+  (function () {
+    var main = document.getElementById("packs");
+    var box = document.createElement("div");
+    box.className = "filter";
+    var input = document.createElement("input");
+    input.type = "search";
+    input.placeholder = "Filter packs by name or verdict";
+    input.setAttribute("aria-label", "Filter packs");
+    box.appendChild(input);
+    main.parentNode.insertBefore(box, main);
+    input.addEventListener("input", function () {
+      var q = input.value.toLowerCase();
+      var packs = main.querySelectorAll(".pack");
+      for (var i = 0; i < packs.length; i++) {
+        var hit = packs[i].textContent.toLowerCase().indexOf(q) !== -1;
+        packs[i].style.display = hit ? "" : "none";
+      }
+    });
+  })();
+</script>
+
+</body>
+</html>

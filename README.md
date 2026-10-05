@@ -45,12 +45,12 @@ regenerates from public inputs or it does not ship.
 
 | Pack | Audit result | Card | Stranger test |
 |------|--------------|------|---------------|
-| [`healthbench-via-inspect-evals`](packs/healthbench-via-inspect-evals/evidence-pack.json) | 85/100 BLOCKED: model judge with no calibration set | [card](packs/healthbench-via-inspect-evals/card.html) | PASS |
-| [`healthbench-meta-eval-via-inspect-evals`](packs/healthbench-meta-eval-via-inspect-evals/evidence-pack.json) | 95/100 PASS: judge ships its physician-labeled calibration set | [card](packs/healthbench-meta-eval-via-inspect-evals/card.html) | PASS |
-| [`swe-bench-verified-via-inspect-evals`](packs/swe-bench-verified-via-inspect-evals/evidence-pack.json) | 100/100 PASS: grading stays harness-side | [card](packs/swe-bench-verified-via-inspect-evals/card.html) | PASS |
-| [`writingbench-via-inspect-evals`](packs/writingbench-via-inspect-evals/evidence-pack.json) | 85/100 BLOCKED: an anchored rubric is not calibration | [card](packs/writingbench-via-inspect-evals/card.html) | PASS |
-| [`mmlu-via-inspect-evals`](packs/mmlu-via-inspect-evals/evidence-pack.json) | 100/100 PASS: letter-match grading stays harness-side | [card](packs/mmlu-via-inspect-evals/card.html) | PASS |
-| [`gpqa-via-inspect-evals`](packs/gpqa-via-inspect-evals/evidence-pack.json) | 100/100 PASS: letter-match grading stays harness-side | [card](packs/gpqa-via-inspect-evals/card.html) | PASS |
+| [`healthbench-via-inspect-evals`](packs/healthbench-via-inspect-evals/evidence-pack.json) | ![85/100 BLOCKED](https://img.shields.io/badge/85%2F100-BLOCKED-red) model judge with no calibration set | [card](packs/healthbench-via-inspect-evals/card.html) | PASS |
+| [`healthbench-meta-eval-via-inspect-evals`](packs/healthbench-meta-eval-via-inspect-evals/evidence-pack.json) | ![95/100 PASS](https://img.shields.io/badge/95%2F100-PASS-brightgreen) judge ships its physician-labeled calibration set | [card](packs/healthbench-meta-eval-via-inspect-evals/card.html) | PASS |
+| [`swe-bench-verified-via-inspect-evals`](packs/swe-bench-verified-via-inspect-evals/evidence-pack.json) | ![100/100 PASS](https://img.shields.io/badge/100%2F100-PASS-brightgreen) grading stays harness-side | [card](packs/swe-bench-verified-via-inspect-evals/card.html) | PASS |
+| [`writingbench-via-inspect-evals`](packs/writingbench-via-inspect-evals/evidence-pack.json) | ![85/100 BLOCKED](https://img.shields.io/badge/85%2F100-BLOCKED-red) an anchored rubric is not calibration | [card](packs/writingbench-via-inspect-evals/card.html) | PASS |
+| [`mmlu-via-inspect-evals`](packs/mmlu-via-inspect-evals/evidence-pack.json) | ![100/100 PASS](https://img.shields.io/badge/100%2F100-PASS-brightgreen) the most-cited benchmark in AI; letter-match grading stays harness-side | [card](packs/mmlu-via-inspect-evals/card.html) | PASS |
+| [`gpqa-via-inspect-evals`](packs/gpqa-via-inspect-evals/evidence-pack.json) | ![100/100 PASS](https://img.shields.io/badge/100%2F100-PASS-brightgreen) Diamond subset, expert-written questions; choice grading stays harness-side | [card](packs/gpqa-via-inspect-evals/card.html) | PASS |
 
 "Stranger test" means: a clean machine, only public inputs, `verify_pack.py`
 exits 0, the card is reproduced.
