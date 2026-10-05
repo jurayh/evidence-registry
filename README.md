@@ -1,5 +1,7 @@
 # Evidence Registry
 
+[![verify](https://github.com/jurayh/evidence-registry/actions/workflows/verify.yml/badge.svg)](https://github.com/jurayh/evidence-registry/actions/workflows/verify.yml)
+
 Benchmark scores get cited everywhere. Benchmarks themselves never get audited.
 
 A lab reports a number, a paper claims a capability, a leaderboard crowns a model.
@@ -52,6 +54,12 @@ regenerates from public inputs or it does not ship.
 
 "Stranger test" means: a clean machine, only public inputs, `verify_pack.py`
 exits 0, the card is reproduced.
+
+This is what a card looks like:
+
+![The rendered HealthBench integrity card: 85/100 BLOCKED, with the two JUDGE-001 findings](docs/assets/healthbench-card.png)
+
+*The actual rendered card for the [HealthBench pack](packs/healthbench-via-inspect-evals/evidence-pack.json), exactly as `verify_pack.py` regenerates it.*
 
 ## Verify a pack yourself
 
