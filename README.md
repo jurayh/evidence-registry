@@ -51,6 +51,7 @@ regenerates from public inputs or it does not ship.
 | [`writingbench-via-inspect-evals`](packs/writingbench-via-inspect-evals/evidence-pack.json) | ![85/100 BLOCKED](https://img.shields.io/badge/85%2F100-BLOCKED-red) an anchored rubric is not calibration | [card](packs/writingbench-via-inspect-evals/card.html) | PASS |
 | [`mmlu-via-inspect-evals`](packs/mmlu-via-inspect-evals/evidence-pack.json) | ![100/100 PASS](https://img.shields.io/badge/100%2F100-PASS-brightgreen) the most-cited benchmark in AI; letter-match grading stays harness-side | [card](packs/mmlu-via-inspect-evals/card.html) | PASS |
 | [`gpqa-via-inspect-evals`](packs/gpqa-via-inspect-evals/evidence-pack.json) | ![100/100 PASS](https://img.shields.io/badge/100%2F100-PASS-brightgreen) Diamond subset, expert-written questions; choice grading stays harness-side | [card](packs/gpqa-via-inspect-evals/card.html) | PASS |
+| [`aime-2025-via-inspect-evals`](packs/aime-2025-via-inspect-evals/evidence-pack.json) | ![100/100 PASS](https://img.shields.io/badge/100%2F100-PASS-brightgreen) thirty frontier math problems; final-line numeric grading stays harness-side | [card](packs/aime-2025-via-inspect-evals/card.html) | PASS |
 
 "Stranger test" means: a clean machine, only public inputs, `verify_pack.py`
 exits 0, the card is reproduced.

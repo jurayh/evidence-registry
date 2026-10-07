@@ -1,0 +1,126 @@
+{
+  "schema_version": "evidence-pack-v1",
+  "pack_id": "aime-2025-via-inspect-evals",
+  "created_utc": "2026-10-07 08:00 UTC",
+  "build_function": "build_aime2025",
+  "benchmark": {
+    "name": "AIME 2025",
+    "definition_source": "inspect_evals/aime2025",
+    "version": "563bb8404243"
+  },
+  "harness": {
+    "name": "evalwarden",
+    "version": "0.12.0",
+    "install": "pip install evalwarden==0.12.0",
+    "python": "3.12 (advisory; pack authored under 3.12.3)"
+  },
+  "inputs": [
+    {
+      "role": "task_definition",
+      "kind": "git",
+      "location": "https://github.com/UKGovernmentBEIS/inspect_evals",
+      "pin": {
+        "commit": "bd59dd3b48974ad2e91219a6ceed41011e201163",
+        "paths": [
+          "aime2025.py",
+          "eval.yaml",
+          "utils/aime_common.py"
+        ]
+      },
+      "public": true,
+      "fetch_note": "Read by the pack author at the pinned commit (the v0.23.0 release tag; files verified byte-identical to the inspect_evals 0.23.0 wheel). The dataset revision pin (AIME2025_DATASET_REVISION) and the record-to-sample mapping are encoded as constants in the builder script. The solver prompt template (USER_PROMPT_TEMPLATE) and scorer are read from inspect_evals/utils/aime_common.py at the same commit; the template is encoded verbatim in the builder and was verified byte-for-byte against the pinned source during authoring. Machine-verifiable link is the builder script content hash; this pin is for human audit of those constants."
+    },
+    {
+      "role": "dataset_sample",
+      "kind": "https",
+      "location": "https://datasets-server.huggingface.co/rows?dataset=math-ai/aime25&config=default&split=test&offset=0&length=12",
+      "pin": {
+        "content_sha256": "a6a68302b1dfc2f521bb90892504c2c1e9cb224cb119219cb43e824e000a4069"
+      },
+      "public": true,
+      "fetch_spec": {
+        "method": "datasets_server_rows",
+        "length": 12
+      },
+      "fetch_note": "First 12 rows of the test split (config 'default') via the HuggingFace datasets-server rows API. The hash covers exactly the 12 row payloads consumed (r['row'] per row), as a JSON array in canonical form (keys sorted, compact separators, UTF-8). The dataset revision 563bb8404243c5f09de6ec262f2db674fe5bce9b is pinned in the task source; any upstream change fails this hash loudly."
+    },
+    {
+      "role": "builder",
+      "kind": "github_raw",
+      "location": "https://raw.githubusercontent.com/jurayh/evidence-registry/main/builders/build_aime2025_card.py",
+      "pin": {
+        "content_sha256": "cb073e1e2e703fd8bdc4d266b8573bd367bf4ffc37bbb7457a1b243fd76d3220"
+      },
+      "public": true,
+      "fetch_note": "The translation script for this pack, versioned in this repository (builders/build_aime2025_card.py) alongside the pack, so pack and builder land in one commit; earlier packs pin builders in the evalwarden repo instead. The verifier fetches it from this repository's main branch and verifies it byte-for-byte: the content hash is the pin, and any drift fails loudly. The verifier imports it and runs build_aime2025 only."
+    }
+  ],
+  "task_manifest": {
+    "files": {
+      "PROVENANCE.json": "daa40294aee3dd2d2938cc280afa8b197b13ea58119d690d3a4bdf3e080ffa64",
+      "dataset.json": "3fc59df0c35fa71f6024eb2de362c58f3a7d9f4b3772cbdd2df86e1f8ac5e141",
+      "environment.json": "a60577ccad500463ffb8c6a9fbb5ab66a975a52d2799a3545e243d4d5b0dff1d",
+      "grader.json": "09ed0766f4348be17a32d56342b343bbe941ac517f0dff81d058bb28e53e7024"
+    },
+    "sha256": "59e056d5377ffcb1026b76a18429becd580c7b8706baac7ce172c73bfb216e95"
+  },
+  "translation": {
+    "excluded": [
+      {
+        "item": "Answer (the integer answer per problem)",
+        "reason": "Public in the dataset but harness-side: it is the sample target that the aime scorer matches the extracted final-line answer against, which the agent never sees. The integrity question is what the agent can see."
+      }
+    ],
+    "notes": "The agent prompt is the raw problem text wrapped in the task's prompt template (USER_PROMPT_TEMPLATE: solve step by step, end with 'ANSWER: $ANSWER'). The task applies no dataset-level shuffle, so the pack samples the first 12 rows in dataset order, matching the task's own sample order."
+  },
+  "audit_result": {
+    "result": {
+      "schema": "evalwarden.findings",
+      "schema_version": "1.0",
+      "tool": {
+        "name": "evalwarden",
+        "version": "0.12.0"
+      },
+      "eval_id": "AIME 2025 via inspect_evals",
+      "adapter": {
+        "name": "inspect",
+        "version": "0.3.0"
+      },
+      "verdict": "PASS",
+      "score": 100,
+      "findings": [],
+      "unsupported": [
+        "dataset.json:notes",
+        "grader.json:notes"
+      ]
+    },
+    "sha256": "d09e1c1d9bd31d380a199dde907ed4e5cbb67a7bd8f68bb8d37b677d7efb09c0"
+  },
+  "runs": [],
+  "runs_coverage_note": "Definition-level card: no run records exist. Without runs, COST-002..004 and the attempt leg of GRAD-002 cannot fire; without judgments, trajectories, or repeated-run scores, JUDGE-007..009, TRAJ-001..002, NOISE-001..002, and DATA-001..003 stay silent, and GRAD-003 has no declared verifier rule or cached outputs to re-score. JUDGE-001..006 do not apply to the script grader. The audit correctly stays silent about them. A definition-level card is a floor, not a ceiling.",
+  "cost_summary": null,
+  "cost_summary_absent_reason": "no_run_records",
+  "expected_card": {
+    "filename": "aime-2025-via-inspect-evals.html",
+    "sha256": "6f2d3e885598bca4e6ddf34f4f8a453c2a2754d5c2440cb63051eb9223f532f7"
+  },
+  "canonicalization": {
+    "applies_to": "the generated card HTML, before sha256",
+    "rule": "Two mechanical substitutions: (1) replace <footer>...</footer> with <footer></footer>; (2) replace the methodology-table Generated row timestamp cell with the literal TIMESTAMP. The harness version string is kept: the pack pins the exact version, so a version mismatch must fail, not be normalized away."
+  },
+  "repro": {
+    "command": "Save the pack as evidence-pack.json, then run: curl -sSL https://raw.githubusercontent.com/jurayh/evidence-registry/b7d79a06abca949a3abc3ea6dfa51f004e4e6f7f/verify_pack.py -o /tmp/ep_verify.py && python3 /tmp/ep_verify.py evidence-pack.json --work-dir /tmp/ep_work",
+    "verifier": {
+      "location": "https://github.com/jurayh/evidence-registry/blob/main/verify_pack.py",
+      "pin": {
+        "commit": "b7d79a06abca949a3abc3ea6dfa51f004e4e6f7f",
+        "content_sha256": "d125290240efb3de092ac1ccf2a0816897637e4b294537bf6d1f6a8855b5f1d7"
+      }
+    }
+  },
+  "kill_criterion": {
+    "question": "can a stranger regenerate this card from public inputs?",
+    "status": "pass",
+    "verifier_note": "2026-10-07: author-run from a clean work directory with the pack and verify_pack.py (pinned at b7d79a06). 9/9 checks passed: schema version, all inputs public, task-definition pin resolves, dataset sample hash (12 rows), builder hash, task manifest hash, harness 0.12.0 installed fresh, audit result hash (PASS 100/100, 0 findings), canonical card hash. One disclosed transport substitution in the author run: the builder input was served from the committed file in this repository, because its pinned location is this repo's main-branch raw URL and becomes publicly fetchable with the same commit that lands this pack. Every other input was fetched live from its public URL, and the builder bytes were hash-checked exactly as the verifier does. The first CI run on the landing commit is the unmodified stranger test."
+  }
+}
