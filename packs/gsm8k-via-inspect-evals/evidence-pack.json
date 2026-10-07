@@ -1,0 +1,133 @@
+{
+  "schema_version": "evidence-pack-v1",
+  "pack_id": "gsm8k-via-inspect-evals",
+  "created_utc": "2026-10-07 21:38 UTC",
+  "build_function": "build_gsm8k",
+  "benchmark": {
+    "name": "GSM8K",
+    "definition_source": "inspect_evals/gsm8k",
+    "version": "cc7b047b6e5b"
+  },
+  "harness": {
+    "name": "evalwarden",
+    "version": "0.12.0",
+    "install": "pip install evalwarden==0.12.0",
+    "python": "3.12 (advisory; pack authored under 3.12.3)"
+  },
+  "inputs": [
+    {
+      "role": "task_definition",
+      "kind": "git",
+      "location": "https://github.com/UKGovernmentBEIS/inspect_evals",
+      "pin": {
+        "commit": "bd59dd3b48974ad2e91219a6ceed41011e201163",
+        "paths": [
+          "gsm8k.py",
+          "eval.yaml"
+        ]
+      },
+      "public": true,
+      "fetch_note": "Read by the pack author at the pinned commit (the v0.23.0 release tag; files verified byte-identical to the inspect_evals 0.23.0 wheel). The dataset revision pin (GSM8K_DATASET_REVISION) and the record-to-sample mapping are encoded as constants in the builder script. The solver prompt template (MATH_PROMPT_TEMPLATE) is read from gsm8k.py at the same commit; the template is encoded verbatim in the builder and was verified byte-for-byte against the pinned source during authoring. Machine-verifiable link is the builder script content hash; this pin is for human audit of those constants."
+    },
+    {
+      "role": "dataset_sample",
+      "kind": "https",
+      "location": "https://datasets-server.huggingface.co/rows?dataset=openai/gsm8k&config=main&split=test&offset=0&length=12",
+      "pin": {
+        "content_sha256": "26141dbb77bbccb0bba5e0289fd417af922133b789ee1b0cc0d9c06f0820a527"
+      },
+      "public": true,
+      "fetch_spec": {
+        "method": "datasets_server_rows",
+        "length": 12
+      },
+      "fetch_note": "First 12 rows of the test split (config 'main') via the HuggingFace datasets-server rows API. The hash covers exactly the 12 row payloads consumed (r['row'] per row), as a JSON array in canonical form (keys sorted, compact separators, UTF-8). The dataset revision cc7b047b6e5bb11b4f1af84efc572db110a51b3c is pinned in the task source; the rows API serves the dataset repo's current HEAD (which has advanced past that revision), so this content hash is the guard: any upstream change to the consumed rows fails loudly."
+    },
+    {
+      "role": "builder",
+      "kind": "github_raw",
+      "location": "https://raw.githubusercontent.com/jurayh/evidence-registry/main/builders/build_gsm8k_card.py",
+      "pin": {
+        "content_sha256": "f50beb18d1ae89143e58aa7aad2ceb58374578445cbdf45a653567c5fad028b7"
+      },
+      "public": true,
+      "fetch_note": "The translation script for this pack, versioned in this repository (builders/build_gsm8k_card.py) alongside the pack, so pack and builder land in one commit; earlier packs pin builders in the evalwarden repo instead. The verifier fetches it from this repository's main branch and verifies it byte-for-byte: the content hash is the pin, and any drift fails loudly. The verifier imports it and runs build_gsm8k only."
+    }
+  ],
+  "task_manifest": {
+    "files": {
+      "PROVENANCE.json": "752455e6c9e69a78415fb564dd795af8d93b4409803beee05b6665dc2995d390",
+      "dataset.json": "3193eaefb461e41a8885cfeb4288aec68c286b5b38c025ac269baffc893e477d",
+      "environment.json": "0f0ea778b3427a7eee05bd2503d423bdd6f7a76bfcdd144eee914965ee215f5a",
+      "grader.json": "b7f0e11645e003ab7c3b0609b4128fdc00260c6ceca8e2598ba157d0947abdf0"
+    },
+    "sha256": "2f699a2e04daebf50b33e4c84935a0089efeccc70d1b5a3fe9fafc383fe8348c"
+  },
+  "translation": {
+    "excluded": [
+      {
+        "item": "Answer tail (the final numeric answer after '####' in each record's 'answer' field)",
+        "reason": "Public in the dataset but harness-side: it is the sample target that the match scorer grades against, which the agent never sees. The integrity question is what the agent can see."
+      },
+      {
+        "item": "Worked reasoning (the rest of the 'answer' field)",
+        "reason": "Harness-side sample metadata for test items; the agent never sees it."
+      },
+      {
+        "item": "Fewshot system message content (10 worked examples sampled from the train split with seed 42)",
+        "reason": "Agent-visible by design and train-split material with no test targets, but reproducing it would require replicating the task's seeded train-split sampling inside the builder; its existence, size, and seed are documented in the artifact's environment notes."
+      }
+    ],
+    "notes": "The agent prompt is the raw question text wrapped in the task's prompt template (MATH_PROMPT_TEMPLATE: solve step by step, end with 'ANSWER: $ANSWER'), under a fewshot system message the artifact documents but does not reproduce. The task applies no shuffle to the test split, so the pack samples the first 12 rows in dataset order, matching the task's own sample order."
+  },
+  "audit_result": {
+    "result": {
+      "schema": "evalwarden.findings",
+      "schema_version": "1.0",
+      "tool": {
+        "name": "evalwarden",
+        "version": "0.12.0"
+      },
+      "eval_id": "GSM8K via inspect_evals",
+      "adapter": {
+        "name": "inspect",
+        "version": "0.3.0"
+      },
+      "verdict": "PASS",
+      "score": 100,
+      "findings": [],
+      "unsupported": [
+        "dataset.json:notes",
+        "grader.json:notes"
+      ]
+    },
+    "sha256": "4302d36b4f30a7b80b11f26d23f98b27a95c336b83864ee966e2cfb5eaeb82de"
+  },
+  "runs": [],
+  "runs_coverage_note": "Definition-level card: no run records exist. Without runs, COST-002..004 and the attempt leg of GRAD-002 cannot fire; without judgments, trajectories, or repeated-run scores, JUDGE-007..009, TRAJ-001..002, NOISE-001..002, and DATA-001..003 stay silent, and GRAD-003 has no declared verifier rule or cached outputs to re-score. JUDGE-001..006 do not apply to the script grader. The audit correctly stays silent about them. A definition-level card is a floor, not a ceiling.",
+  "cost_summary": null,
+  "cost_summary_absent_reason": "no_run_records",
+  "expected_card": {
+    "filename": "gsm8k-via-inspect-evals.html",
+    "sha256": "3176c6ebc1115974b0e83d2a302e33294e3f202c4ee92b0feeaa8d4ec10075d7"
+  },
+  "canonicalization": {
+    "applies_to": "the generated card HTML, before sha256",
+    "rule": "Two mechanical substitutions: (1) replace <footer>...</footer> with <footer></footer>; (2) replace the methodology-table Generated row timestamp cell with the literal TIMESTAMP. The harness version string is kept: the pack pins the exact version, so a version mismatch must fail, not be normalized away."
+  },
+  "repro": {
+    "command": "Save the pack as evidence-pack.json, then run: curl -sSL https://raw.githubusercontent.com/jurayh/evidence-registry/b7d79a06abca949a3abc3ea6dfa51f004e4e6f7f/verify_pack.py -o /tmp/ep_verify.py && python3 /tmp/ep_verify.py evidence-pack.json --work-dir /tmp/ep_work",
+    "verifier": {
+      "location": "https://github.com/jurayh/evidence-registry/blob/main/verify_pack.py",
+      "pin": {
+        "commit": "b7d79a06abca949a3abc3ea6dfa51f004e4e6f7f",
+        "content_sha256": "d125290240efb3de092ac1ccf2a0816897637e4b294537bf6d1f6a8855b5f1d7"
+      }
+    }
+  },
+  "kill_criterion": {
+    "question": "can a stranger regenerate this card from public inputs?",
+    "status": "pass",
+    "verifier_note": "2026-10-07: author-run from a clean work directory with the pack and verify_pack.py (pinned at b7d79a06). 9/9 checks passed: schema version, all inputs public, task-definition pin resolves, dataset sample hash (12 rows), builder hash, task manifest hash, harness 0.12.0 installed fresh, audit result hash (PASS 100/100, 0 findings), canonical card hash. One disclosed transport substitution in the author run: the builder input was served from the committed file in this repository, because its pinned location is this repo's main-branch raw URL and becomes publicly fetchable with the same commit that lands this pack. Every other input was fetched live from its public URL, and the builder bytes were hash-checked exactly as the verifier does. The first CI run on the landing commit is the unmodified stranger test."
+  }
+}
