@@ -1,0 +1,129 @@
+{
+  "schema_version": "evidence-pack-v1",
+  "pack_id": "mmlu-pro-via-inspect-evals",
+  "created_utc": "2026-10-09 18:40 UTC",
+  "build_function": "build_mmlu_pro",
+  "benchmark": {
+    "name": "MMLU-Pro",
+    "definition_source": "inspect_evals/mmlu_pro (mmlu_pro)",
+    "version": "527feea0afed"
+  },
+  "harness": {
+    "name": "evalwarden",
+    "version": "0.13.1",
+    "install": "pip install evalwarden==0.13.1",
+    "python": "3.12 (advisory; pack authored under 3.12.3)"
+  },
+  "inputs": [
+    {
+      "role": "task_definition",
+      "kind": "git",
+      "location": "https://github.com/UKGovernmentBEIS/inspect_evals",
+      "pin": {
+        "commit": "bd59dd3b48974ad2e91219a6ceed41011e201163",
+        "paths": [
+          "mmlu_pro.py",
+          "eval.yaml"
+        ]
+      },
+      "public": true,
+      "fetch_note": "Read by the pack author at the pinned commit (the v0.23.0 release tag; files verified byte-identical to the inspect_evals 0.23.0 wheel). The dataset revision pin (MMLU_PRO_DATASET_REVISION) and the record-to-sample mapping are encoded as constants in the builder script. The task defines its own USER_PROMPT_TEMPLATE in mmlu_pro.py, encoded verbatim in the builder; choice formatting follows inspect_ai 0.3.277 (solver/_multiple_choice.py) and was verified byte-for-byte during authoring. Machine-verifiable link is the builder script content hash; this pin is for human audit of those constants."
+    },
+    {
+      "role": "dataset_sample",
+      "kind": "https",
+      "location": "https://datasets-server.huggingface.co/rows?dataset=TIGER-Lab/MMLU-Pro&config=default&split=test&offset=0&length=12",
+      "pin": {
+        "content_sha256": "93f1623fa2dd94001483d250e54aa9f03195fd142cbec67bf67d77d4906b9a68"
+      },
+      "public": true,
+      "fetch_spec": {
+        "method": "datasets_server_rows",
+        "length": 12
+      },
+      "fetch_note": "First 12 rows of the test split (config 'default') via the HuggingFace datasets-server rows API. The hash covers exactly the 12 row payloads consumed (r['row'] per row), as a JSON array in canonical form (keys sorted, compact separators, UTF-8). The dataset revision 527feea0afed1de15a8c115abf7be4c912123315 is pinned in the task source; the rows API serves the dataset repo's current HEAD (which has advanced past that revision), so this content hash is the guard: any upstream change to the consumed rows fails loudly."
+    },
+    {
+      "role": "builder",
+      "kind": "github_raw",
+      "location": "https://raw.githubusercontent.com/jurayh/evidence-registry/main/builders/build_mmlu_pro_card.py",
+      "pin": {
+        "content_sha256": "2cdc8c3e664b884f54779e6ed0fe79100c23bb052c612a2f64873ad25c715c6c"
+      },
+      "public": true,
+      "fetch_note": "The translation script for this pack, versioned in this repository (builders/build_mmlu_pro_card.py) alongside the pack, so pack and builder land in one commit; earlier packs pin builders in the evalwarden repo instead. The verifier fetches it from this repository's main branch and verifies it byte-for-byte: the content hash is the pin, and any drift fails loudly. The verifier imports it and runs build_mmlu_pro only."
+    }
+  ],
+  "task_manifest": {
+    "files": {
+      "PROVENANCE.json": "e9495c7382df7d8df5c203fb104b5c141acece565701a1b15f97dccd7e3e6a37",
+      "dataset.json": "8e7f89bfdb19445fe724146cba4d38c151ff3b6b9c075a1182d70437225b62b6",
+      "environment.json": "cab876e2f60cffafd83376ab6db9a93f1c00e968395f8e9d2c95bbc4d94eaf4b",
+      "grader.json": "d1fb129f8998b8bef54ec7a024a13aaa0e751ef0dd789db2378c2260550e1c2f"
+    },
+    "sha256": "379173760fc8dd0481047810af5331d2387360fb1a4db22967a5c485f7b817d5"
+  },
+  "translation": {
+    "excluded": [
+      {
+        "item": "answer and answer_index (the correct option letter and its index per question)",
+        "reason": "Public in the dataset but harness-side: the answer is the sample target that choice() grades against, which the agent never sees. The integrity question is what the agent can see."
+      },
+      {
+        "item": "cot_content (dataset-carried chain-of-thought text that terminates in the answer)",
+        "reason": "Answer-bearing sample metadata in record_to_sample; the agent never sees it."
+      }
+    ],
+    "notes": "The agent prompt is the task's own USER_PROMPT_TEMPLATE over the question and its lettered options in dataset order (items carry 3 to 10 options). The task shuffles dataset order at load (unseeded), so the pack's first-12 sample illustrates the instrument rather than a particular eval draw; choice order within an item is not shuffled."
+  },
+  "audit_result": {
+    "result": {
+      "schema": "evalwarden.findings",
+      "schema_version": "1.0",
+      "tool": {
+        "name": "evalwarden",
+        "version": "0.13.1"
+      },
+      "eval_id": "MMLU-Pro via inspect_evals",
+      "adapter": {
+        "name": "inspect",
+        "version": "0.3.0"
+      },
+      "verdict": "PASS",
+      "score": 100,
+      "findings": [],
+      "unsupported": [
+        "dataset.json:notes",
+        "grader.json:notes"
+      ]
+    },
+    "sha256": "330984cfe3b10997ca590c3c7818c232c76858cbf339c3dc657bf16540b8e345"
+  },
+  "runs": [],
+  "runs_coverage_note": "Definition-level card: no run records exist. Without runs, COST-002..004 and the attempt leg of GRAD-002 cannot fire; without judgments, trajectories, or repeated-run scores, JUDGE-007..009, TRAJ-001..002, NOISE-001..002, and DATA-001..003 stay silent, and GRAD-003 has no declared verifier rule or cached outputs to re-score. JUDGE-001..006 do not apply to the script grader. The audit correctly stays silent about them. A definition-level card is a floor, not a ceiling.",
+  "cost_summary": null,
+  "cost_summary_absent_reason": "no_run_records",
+  "expected_card": {
+    "filename": "mmlu-pro-via-inspect-evals.html",
+    "sha256": "6980092ebf8b63ce360aecb290693179571cc04d44290a7dfaf9e417526c4a82"
+  },
+  "canonicalization": {
+    "applies_to": "the generated card HTML, before sha256",
+    "rule": "Two mechanical substitutions: (1) replace <footer>...</footer> with <footer></footer>; (2) replace the methodology-table Generated row timestamp cell with the literal TIMESTAMP. The harness version string is kept: the pack pins the exact version, so a version mismatch must fail, not be normalized away."
+  },
+  "repro": {
+    "command": "Save the pack as evidence-pack.json, then run: curl -sSL https://raw.githubusercontent.com/jurayh/evidence-registry/b7d79a06abca949a3abc3ea6dfa51f004e4e6f7f/verify_pack.py -o /tmp/ep_verify.py && python3 /tmp/ep_verify.py evidence-pack.json --work-dir /tmp/ep_work",
+    "verifier": {
+      "location": "https://github.com/jurayh/evidence-registry/blob/main/verify_pack.py",
+      "pin": {
+        "commit": "b7d79a06abca949a3abc3ea6dfa51f004e4e6f7f",
+        "content_sha256": "d125290240efb3de092ac1ccf2a0816897637e4b294537bf6d1f6a8855b5f1d7"
+      }
+    }
+  },
+  "kill_criterion": {
+    "question": "can a stranger regenerate this card from public inputs?",
+    "status": "pass",
+    "verifier_note": "2026-10-09: author-run from a clean work directory with the pack and verify_pack.py (pinned at b7d79a06). 9/9 checks passed: schema version, all inputs public, task-definition pin resolves, dataset sample hash (12 rows), builder hash, task manifest hash, harness 0.13.1 installed fresh, audit result hash (PASS 100/100, 0 findings), canonical card hash. One disclosed transport substitution in the author run: the builder input was served from the committed file in this repository, because its pinned location is this repo's main-branch raw URL and becomes publicly fetchable with the same commit that lands this pack. Every other input was fetched live from its public URL, and the builder bytes were hash-checked exactly as the verifier does. The first CI run on the landing commit is the unmodified stranger test."
+  }
+}
