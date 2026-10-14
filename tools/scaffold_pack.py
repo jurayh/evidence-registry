@@ -24,7 +24,10 @@ What this does:
 - Writes builders/build_<task>_card.py from the house template with
   the derived constants filled in and every judgment field (grader
   modeling, exclusions, the record-to-sample mapping, prompt-template
-  verification, notes prose) left as a TODO constant. The generated
+  verification, notes prose) left as a TODO constant. Dataset
+  constants that cannot be derived (indirect loaders, partial
+  derivations) are emitted as guarded TODO constants too, so the
+  generated builder is always structurally complete. The generated
   builder REFUSES TO RUN while any TODO is unresolved, so a
   scaffolded pack can never pass verify_pack.py by accident.
 - Prints the README row and gallery article stubs plus the checklist
@@ -576,27 +579,71 @@ if __name__ == "__main__":
 
 def render_builder(task: str, module: str, derived: dict, evidence: list[str]) -> str:
     prefix = re.sub(r"[^A-Za-z0-9]", "_", task).upper()
-    const_lines = []
-    if derived.get("dataset"):
-        const_lines.append(f'{prefix}_DATASET = "{derived["dataset"]}"')
-    if derived.get("config"):
-        const_lines.append(f'{prefix}_CONFIG = "{derived["config"]}"')
-    if derived.get("revision"):
-        const_lines.append(f'{prefix}_REVISION = "{derived["revision"]}"')
-    if derived.get("split"):
-        const_lines.append(f'{prefix}_SPLIT = "{derived["split"]}"')
-    if derived.get("rows_url"):
-        const_lines.append(f"{prefix}_ROWS_URL = (\n    \"{derived['rows_url']}\"\n)")
+
+    # Dataset constants. A derived field is emitted as a plain
+    # constant; a field the scaffold could not derive (no derivable
+    # hf_dataset call, or a partial derivation missing config, split,
+    # revision, or the rows URL) is emitted as a TODO_<PREFIX>_*
+    # constant guarded by _check_todos(), exactly like the judgment
+    # TODOs below. The generated builder is therefore always
+    # structurally complete: every name its body references exists,
+    # and it refuses to run over the unresolved TODO list instead of
+    # failing mid-build with a NameError.
+    const_lines: list[str] = []
+    todo_dataset_names: list[str] = []
+    names: dict[str, str] = {}
+
+    def dataset_const(field: str, suffix: str, line: str | None) -> None:
+        name = f"{prefix}_{suffix}"
+        if line is not None:
+            const_lines.append(line)
+            names[field] = name
+            return
+        todo_name = f"TODO_{name}"
+        if not todo_dataset_names:
+            const_lines.append(
+                "# TODO: dataset constant(s) the scaffold could not derive\n"
+                "# from the pinned sources (see the derivation report).\n"
+                "# Resolve each by hand and remove its name from\n"
+                "# TODO_UNRESOLVED below."
+            )
+        const_lines.append(f"{todo_name} = None")
+        todo_dataset_names.append(todo_name)
+        names[field] = todo_name
+
+    dataset_const(
+        "dataset", "DATASET",
+        f'{prefix}_DATASET = "{derived["dataset"]}"'
+        if derived.get("dataset") else None,
+    )
+    dataset_const(
+        "config", "CONFIG",
+        f'{prefix}_CONFIG = "{derived["config"]}"'
+        if derived.get("config") else None,
+    )
+    dataset_const(
+        "revision", "REVISION",
+        f'{prefix}_REVISION = "{derived["revision"]}"'
+        if derived.get("revision") else None,
+    )
+    dataset_const(
+        "split", "SPLIT",
+        f'{prefix}_SPLIT = "{derived["split"]}"'
+        if derived.get("split") else None,
+    )
+    dataset_const(
+        "rows_url", "ROWS_URL",
+        f"{prefix}_ROWS_URL = (\n    \"{derived['rows_url']}\"\n)"
+        if derived.get("rows_url") else None,
+    )
     if derived.get("total_rows") is not None:
         const_lines.append(
             f"# Rows in the derived split (datasets-server, at scaffold time): "
             f"{derived['total_rows']}"
         )
-    derived_block = "\n".join(const_lines) if const_lines else (
-        "# TODO: no dataset constants could be derived (see scaffold report)."
-    )
+    derived_block = "\n".join(const_lines)
 
-    todo_names = [
+    todo_names = todo_dataset_names + [
         "TODO_EVAL_ID",
         "TODO_BENCHMARK",
         "TODO_PROMPT_TEMPLATE",
@@ -621,23 +668,23 @@ def render_builder(task: str, module: str, derived: dict, evidence: list[str]) -
     else:
         pinned_sources = "- (dataset not derived; see the scaffold report)"
 
-    prov_lines = []
-    if derived.get("dataset"):
-        prov_lines.append(
-            f'                "dataset": {prefix}_DATASET,'
-        )
+    prov_lines = [
+        f'                "dataset": {names["dataset"]},'
+    ]
     if derived.get("config"):
         prov_lines.append(
             f'                "dataset_config": "{derived["config"]}",'
         )
-    if derived.get("split"):
+    else:
         prov_lines.append(
-            f'                "dataset_split": {prefix}_SPLIT,'
+            f'                "dataset_config": {names["config"]},'
         )
-    if derived.get("revision"):
-        prov_lines.append(
-            f'                "dataset_revision": {prefix}_REVISION,'
-        )
+    prov_lines.append(
+        f'                "dataset_split": {names["split"]},'
+    )
+    prov_lines.append(
+        f'                "dataset_revision": {names["revision"]},'
+    )
     prov_block = "\n".join(prov_lines)
 
     task_files = derived.get("task_files_read") or [f"{module}.py", "eval.yaml"]
@@ -648,6 +695,10 @@ def render_builder(task: str, module: str, derived: dict, evidence: list[str]) -
         "%%DISPLAY%%": task,
         "%%TASK%%": task,
         "%%MODULE%%": module,
+        # Before %%PREFIX%% itself: the build body's rows-URL
+        # reference must resolve to the emitted constant's name,
+        # which carries a TODO_ prefix when underived.
+        "%%PREFIX%%_ROWS_URL": names["rows_url"],
         "%%PREFIX%%": prefix,
         "%%PINNED_SOURCES%%": pinned_sources,
         "%%DERIVED_CONSTANTS%%": derived_block,
