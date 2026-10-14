@@ -61,6 +61,8 @@ regenerates from public inputs or it does not ship.
 | [`hellaswag-via-inspect-evals`](packs/hellaswag-via-inspect-evals/evidence-pack.json) | ![100/100 PASS](https://img.shields.io/badge/100%2F100-PASS-brightgreen) 10,042 sentence-completion items; letter-match grading stays harness-side | [card](packs/hellaswag-via-inspect-evals/card.html) | PASS |
 | [`winogrande-via-inspect-evals`](packs/winogrande-via-inspect-evals/evidence-pack.json) | ![100/100 PASS](https://img.shields.io/badge/100%2F100-PASS-brightgreen) 1,267 twin-sentence completions; letter-match grading stays harness-side | [card](packs/winogrande-via-inspect-evals/card.html) | PASS |
 | [`ifeval-via-inspect-evals`](packs/ifeval-via-inspect-evals/evidence-pack.json) | ![100/100 PASS](https://img.shields.io/badge/100%2F100-PASS-brightgreen) 541 verifiable-instruction prompts; the constraint checker is an external package the task leaves unpinned | [card](packs/ifeval-via-inspect-evals/card.html) | PASS |
+| [`wmdp-bio-via-inspect-evals`](packs/wmdp-bio-via-inspect-evals/evidence-pack.json) | ![100/100 PASS](https://img.shields.io/badge/100%2F100-PASS-brightgreen) 1,273 biosecurity proxy questions; letter-match grading stays harness-side | [card](packs/wmdp-bio-via-inspect-evals/card.html) | PASS |
+| [`agentharm-via-inspect-evals`](packs/agentharm-via-inspect-evals/evidence-pack.json) | ![85/100 BLOCKED](https://img.shields.io/badge/85%2F100-BLOCKED-red) two model judges grade harmful-behavior transcripts, no calibration set for either | [card](packs/agentharm-via-inspect-evals/card.html) | PASS |
 
 "Stranger test" means: a clean machine, only public inputs, `verify_pack.py`
 exits 0, the card is reproduced.
@@ -97,6 +99,9 @@ invalid and the registry concept fails for that card.
 
 - `schema/evidence-pack.schema.json`: the evidence pack schema (v1).
 - `verify_pack.py`: the stranger's verifier. Stdlib only.
+- `tools/scaffold_pack.py`: scaffolds a new pack's builder from a pinned
+  inspect_evals task, deriving the mechanical constants and leaving every
+  judgment field a guarded TODO.
 - `packs/<card-id>/evidence-pack.json`: one pack per card.
 - `CONTRIBUTING.md`: how to add a pack and the bar it must clear.
 - `docs/`: [how it differs](docs/how-it-differs.md),

@@ -25,6 +25,9 @@ registry whose old entries rot is not a registry.
    not say, and document the omission. Never invent traces: definition-level
    cards have no run file. Keep answer-bearing material out of the
    agent-visible artifact even when it is public, and document the exclusion.
+   For an inspect_evals task, `python3 tools/scaffold_pack.py <task>` derives
+   the builder's mechanical constants from the pinned source and leaves the
+   judgment fields as TODOs that block the build until resolved.
 2. Run the pinned harness and generate the card. Record the exact version.
 3. Author `packs/<card-id>/evidence-pack.json` following the schema. Validate
    it locally:
