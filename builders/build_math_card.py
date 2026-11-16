@@ -31,9 +31,11 @@ two deterministic scorers in the verifier path and notes.
 Pinned sources (all public, no auth):
 - inspect_evals @ bd59dd3b48974ad2e91219a6ceed41011e201163 (tag v0.23.0)
   (https://github.com/UKGovernmentBEIS/inspect_evals)
-- MATH: DigitalLearningGmbH/MATH-lighteval (config "default", test
+- MATH: SevenAIGmbH/MATH-lighteval (config "default", test
   split) rev 0530c78699ea5e8eb5530600900e1f328b48acad (revision pinned
-  in the task source, math.py: MATH_DATASET_REVISION); the solver
+  in the task source, math.py: MATH_DATASET_REVISION); the dataset
+  org was renamed DigitalLearningGmbH -> SevenAIGmbH in Nov 2026,
+  revision and rows unchanged. The solver
   prompt template (USER_PROMPT_TEMPLATE) and the three scorers are read
   from inspect_evals/math/math.py and inspect_evals/math/utils.py at
   the same commit; the template is encoded verbatim below.
@@ -49,12 +51,12 @@ SCHEMA_VERSION = "evalwarden-artifact-v1"
 N_SAMPLES = 12
 
 INSPECT_EVALS_COMMIT = "bd59dd3b48974ad2e91219a6ceed41011e201163"
-MATH_DATASET = "DigitalLearningGmbH/MATH-lighteval"
+MATH_DATASET = "SevenAIGmbH/MATH-lighteval"
 MATH_REVISION = "0530c78699ea5e8eb5530600900e1f328b48acad"
 MATH_SPLIT = "test"
 MATH_ROWS_URL = (
     "https://datasets-server.huggingface.co/rows?dataset="
-    "DigitalLearningGmbH/MATH-lighteval&config=default&split=test"
+    "SevenAIGmbH/MATH-lighteval&config=default&split=test"
     "&offset=0&length=12"
 )
 # Exact solver prompt template: USER_PROMPT_TEMPLATE from

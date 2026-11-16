@@ -66,6 +66,11 @@ jobs:
           EOF
 
       - name: Verify all packs
+        env:
+          # verify_pack.py sends this as a Bearer token on api.github.com
+          # calls only; without it the unauthenticated quota (60/hr per
+          # shared runner IP) is exhausted before a full-corpus run starts.
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           fail=0
           for pack in packs/*/evidence-pack.json; do

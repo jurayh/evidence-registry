@@ -16,11 +16,14 @@ import argparse
 import hashlib
 import importlib.util
 import json
+import os
 import re
 import shutil
 import subprocess
 import sys
 import time
+import urllib.error
+import urllib.parse
 import urllib.request
 from pathlib import Path
 
@@ -37,18 +40,51 @@ def canon_json(obj) -> bytes:
 
 def get(url: str, timeout: int = 120, retries: int = 3) -> bytes:
     """Fetch a URL with retries: a stranger-run verifier must survive transient
-    network flakiness rather than failing the whole regeneration on one timeout."""
+    network flakiness rather than failing the whole regeneration on one timeout.
+
+    When GITHUB_TOKEN is set (GitHub Actions provides it automatically) and
+    the request targets api.github.com, it is sent as a Bearer token: the
+    unauthenticated API quota (60/hr per shared runner IP) is exhausted
+    before a full-corpus run even starts. Without a token the request stays
+    unauthenticated, so a stranger can still verify.
+
+    Non-transient HTTP errors (4xx: bad request, auth, rate limit, not
+    found) fail fast instead of burning retries: retrying will not help
+    and, for 403 rate limits, only burns more quota. 5xx and transport
+    errors keep retrying.
+    """
+    headers = dict(UA)
+    token = os.environ.get("GITHUB_TOKEN")
+    if token and urllib.parse.urlparse(url).hostname == "api.github.com":
+        headers["Authorization"] = f"Bearer {token}"
     last: Exception | None = None
     for attempt in range(retries):
         try:
-            req = urllib.request.Request(url, headers=UA)
+            req = urllib.request.Request(url, headers=headers)
             with urllib.request.urlopen(req, timeout=timeout) as resp:
                 return resp.read()
+        except urllib.error.HTTPError as exc:
+            last = exc
+            if exc.code in (400, 401, 403, 404, 410, 422, 429):
+                break
+            if attempt < retries - 1:
+                time.sleep(2 ** attempt)
         except Exception as exc:  # noqa: BLE001 - retry transient failures
             last = exc
             if attempt < retries - 1:
                 time.sleep(2 ** attempt)
     raise RuntimeError(f"fetch failed after {retries} attempts: {url}: {last}")
+
+
+def short_error(exc: Exception) -> str:
+    """One-line fetch failure for a check detail: the HTTP status, not the
+    URL. The full message is 'fetch failed after N attempts: <long url>:
+    HTTP <code> <reason>', and truncating it to a fixed width cuts the
+    status off (it once hid a 403 rate limit behind a bare URL)."""
+    m = re.search(r"HTTP Error (\d+): ([^\n]*)", str(exc))
+    if m:
+        return f"HTTP {m.group(1)} {m.group(2).strip()}"
+    return str(exc)[:120]
 
 
 def canonicalize_card(html: str) -> str:
@@ -86,7 +122,8 @@ def verify_task_definition_git(inp: dict) -> bool:
         ok = data.get("sha", "").startswith(pin["commit"][:12])
         return check("input:task_definition pin resolves", ok, f"{owner}/{repo}@{pin['commit'][:12]}")
     except Exception as exc:  # noqa: BLE001
-        return check("input:task_definition pin resolves", False, str(exc)[:100])
+        return check("input:task_definition pin resolves", False,
+                     f"{owner}/{repo}@{pin['commit'][:12]}: {short_error(exc)}")
 
 
 def fetch_jsonl_head(url: str, want: int) -> list[str]:
@@ -166,9 +203,21 @@ def main() -> int:
             return get(ds["location"])
         raise RuntimeError(f"unknown dataset fetch_spec method: {spec['method']}")
 
+    # A fetch failure is a FAIL check, not a crash: the verifier must report
+    # which input could not be re-fetched and keep going (the workflow loop
+    # then moves on to the next pack). Previously a fetch failure raised
+    # out of fetch_consumed() and killed the whole run with a traceback,
+    # so a transient outage read as a broken pack.
     ds_hash, ds_detail, ds_ok = "", "", False
+    ds_error: Exception | None = None
     for _ in range(3):
-        consumed = fetch_consumed()
+        try:
+            consumed = fetch_consumed()
+        except Exception as exc:  # noqa: BLE001 - fetch failure is a check
+            ds_error = exc
+            time.sleep(10)
+            continue
+        ds_error = None
         if isinstance(consumed, bytes):
             ds_hash = sha256_bytes(consumed)
             ds_detail = f"{len(consumed)} bytes"
@@ -179,13 +228,22 @@ def main() -> int:
             ds_ok = True
             break
         time.sleep(2)
-    ok &= check("input:dataset_sample content hash", ds_ok,
-                f"got {ds_hash[:12]}, want {ds['pin']['content_sha256'][:12]} "
-                f"({ds_detail})")
+    if ds_error is not None:
+        ok &= check("input:dataset_sample fetchable", False, short_error(ds_error))
+    else:
+        ok &= check("input:dataset_sample content hash", ds_ok,
+                    f"got {ds_hash[:12]}, want {ds['pin']['content_sha256'][:12]} "
+                    f"({ds_detail})")
 
     # 3. Builder script: byte-identical.
     b = inputs["builder"]
-    builder_bytes = get(b["location"])
+    try:
+        builder_bytes = get(b["location"])
+    except Exception as exc:  # noqa: BLE001 - fetch failure is a check
+        check("input:builder fetchable", False, short_error(exc))
+        print()
+        print("KILL CRITERION: FAIL -- see failing checks above.")
+        return 1
     ok &= check("input:builder content hash",
                 sha256_bytes(builder_bytes) == b["pin"]["content_sha256"])
     builder_path = work / "build_real_cards.py"
@@ -204,7 +262,15 @@ def main() -> int:
         print()
         print("KILL CRITERION: FAIL -- see failing checks above.")
         return 1
-    artifact_dir = build_fn(work / "artifacts")
+    try:
+        artifact_dir = build_fn(work / "artifacts")
+    except Exception as exc:  # noqa: BLE001 - build failure is a check
+        # Builders fetch their own inputs (e.g. the dataset rows); if that
+        # fetch fails the pack still reports a clean FAIL, not a traceback.
+        check("artifact build", False, short_error(exc))
+        print()
+        print("KILL CRITERION: FAIL -- see failing checks above.")
+        return 1
 
     manifest_files = {f.name: sha256_bytes(f.read_bytes())
                       for f in sorted(artifact_dir.iterdir()) if f.is_file()}

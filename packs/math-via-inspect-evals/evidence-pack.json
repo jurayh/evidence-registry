@@ -33,7 +33,7 @@
     {
       "role": "dataset_sample",
       "kind": "https",
-      "location": "https://datasets-server.huggingface.co/rows?dataset=DigitalLearningGmbH/MATH-lighteval&config=default&split=test&offset=0&length=12",
+      "location": "https://datasets-server.huggingface.co/rows?dataset=SevenAIGmbH/MATH-lighteval&config=default&split=test&offset=0&length=12",
       "pin": {
         "content_sha256": "6eaabee41fe391fc552f6ecb1ea9bbc8729974537e9faf0da98f99791a948995"
       },
@@ -42,14 +42,14 @@
         "method": "datasets_server_rows",
         "length": 12
       },
-      "fetch_note": "First 12 rows of the test split (config 'default') via the HuggingFace datasets-server rows API. The hash covers exactly the 12 row payloads consumed (r['row'] per row), as a JSON array in canonical form (keys sorted, compact separators, UTF-8). The dataset revision 0530c78699ea5e8eb5530600900e1f328b48acad is pinned in the task source; any upstream change fails this hash loudly."
+      "fetch_note": "First 12 rows of the test split (config 'default') via the HuggingFace datasets-server rows API. The hash covers exactly the 12 row payloads consumed (r['row'] per row), as a JSON array in canonical form (keys sorted, compact separators, UTF-8). The dataset revision 0530c78699ea5e8eb5530600900e1f328b48acad is pinned in the task source; any upstream change fails this hash loudly. Dataset org renamed DigitalLearningGmbH -> SevenAIGmbH in Nov 2026; revision and rows verified identical under the new name, so the content hash is unchanged."
     },
     {
       "role": "builder",
       "kind": "github_raw",
       "location": "https://raw.githubusercontent.com/jurayh/evidence-registry/main/builders/build_math_card.py",
       "pin": {
-        "content_sha256": "04ea03ce51e8f9e3cb2ed65b522fa178b3e6cf2683db3fca64dcfd82676eceb4"
+        "content_sha256": "afb36c887e84b97aa00b5406a80f3d147e30f393d716f8f0dfb5f01c05ec458b"
       },
       "public": true,
       "fetch_note": "The translation script for this pack, versioned in this repository (builders/build_math_card.py) alongside the pack, so pack and builder land in one commit; earlier packs pin builders in the evalwarden repo instead. The verifier fetches it from this repository's main branch and verifies it byte-for-byte: the content hash is the pin, and any drift fails loudly. The verifier imports it and runs build_math only."
@@ -57,12 +57,12 @@
   ],
   "task_manifest": {
     "files": {
-      "PROVENANCE.json": "0230c5c5d412179ca5bb285c9fe95c7154b3b204d60e7bc9918d8b51c7d13f07",
-      "dataset.json": "a3899bef89ddaa8036ffbc105bd99f5d151a9a6a21866af0e345497e50aa77e5",
+      "PROVENANCE.json": "2258b993181a9431935ad0f46c798498ede80798cf7b1c0352a6480a0fdf1e6b",
+      "dataset.json": "7b68a0ff78f75b845d3a5637c166cab97b77a8260a5669dc25e164eeefa9d838",
       "environment.json": "a3ca2d8044866e746c1a2dd501d3478eeb0fd800290aa5109437675cb9b8a413",
       "grader.json": "83e3cb1bdb6d5f5f13fce511f875a57a69673e872bae97bef59830757466a5b1"
     },
-    "sha256": "2a21b3c8ec181d92f10a5aa8965c5fa7a6454603731a6c5d21f6e45beba3c36c"
+    "sha256": "709ff01e49fb805b52efaafe762296ab2835634d82f0063cd95da8c38fec4c64"
   },
   "translation": {
     "excluded": [
@@ -159,7 +159,7 @@
   "cost_summary_absent_reason": "no_run_records",
   "expected_card": {
     "filename": "math-via-inspect-evals.html",
-    "sha256": "ec2bfcaa1b58f5ec56f6ee51b5b243f50af815a501710464ab75fc3c9df50833"
+    "sha256": "80dddacfe1f9761a83c96e15ce429387ce6315c4bd9f1fdacf12d0a15183d9c2"
   },
   "canonicalization": {
     "applies_to": "the generated card HTML, before sha256",
